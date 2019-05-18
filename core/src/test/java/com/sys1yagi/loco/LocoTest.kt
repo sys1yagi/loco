@@ -4,10 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
 import com.sys1yagi.loco.core.*
 import com.sys1yagi.loco.core.internal.SmashedLog
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -185,7 +182,7 @@ class LocoTest {
     }
 
     @Test
-    fun send() = runBlockingTest {
+    fun sendSuccess() = runBlockingTest {
         val smasher: Smasher = mockk(relaxed = true)
         val sender: Sender = mockk(relaxed = true) {
             coEvery { send(any()) } returns SendingResult.SUCCESS
@@ -225,13 +222,137 @@ class LocoTest {
         assertThat(store.storage.size).isEqualTo(0)
     }
 
+    @Test
+    fun sendFailed() = runBlockingTest {
+        val smasher: Smasher = mockk(relaxed = true)
+        val sender: Sender = mockk(relaxed = true) {
+            coEvery { send(any()) } returns SendingResult.FAILED
+        }
+        val store = spyk(TestStore())
+        Loco.start(
+            LocoConfig(
+                store = store,
+                smashers = listOf(
+                    smasher
+                ),
+                senders = listOf(
+                    sender
+                )
+            ) {
+                logToSmasher[smasher::class] = listOf(ClickLog::class)
+                logToSender[sender::class] = listOf(ClickLog::class)
+            },
+            this
+        )
+        Loco.send(
+            ClickLog(1, "jack")
+        )
+        Loco.send(
+            ClickLog(2, "jill")
+        )
+        Loco.send(
+            ClickLog(3, "desuger")
+        )
+
+        assertThat(store.storage.size).isEqualTo(3)
+
+        advanceTimeBy(6000)
+
+        Loco.stop()
+        coVerify { sender.send(any()) }
+        coVerify { store.delete(any()) }
+        assertThat(store.storage.size).isEqualTo(0)
+    }
+
+    @Test
+    fun sendRetry() = runBlockingTest {
+        val smasher: Smasher = mockk(relaxed = true)
+        val sender: Sender = mockk(relaxed = true) {
+            coEvery { send(any()) } returns SendingResult.RETRY
+        }
+        val store = spyk(TestStore())
+        Loco.start(
+            LocoConfig(
+                store = store,
+                smashers = listOf(
+                    smasher
+                ),
+                senders = listOf(
+                    sender
+                )
+            ) {
+                logToSmasher[smasher::class] = listOf(ClickLog::class)
+                logToSender[sender::class] = listOf(ClickLog::class)
+            },
+            this
+        )
+        Loco.send(
+            ClickLog(1, "jack")
+        )
+        Loco.send(
+            ClickLog(2, "jill")
+        )
+        Loco.send(
+            ClickLog(3, "desuger")
+        )
+
+        assertThat(store.storage.size).isEqualTo(3)
+
+        advanceTimeBy(6000)
+
+        Loco.stop()
+        coVerify { sender.send(any()) }
+        coVerify(exactly = 0) {
+            store.delete(any())
+        }
+        assertThat(store.storage.size).isEqualTo(3)
+    }
+
+    @Test
+    fun customBulkSize() = runBlockingTest {
+        val smasher: Smasher = mockk(relaxed = true)
+        val sender: Sender = mockk(relaxed = true) {
+            coEvery { send(any()) } returns SendingResult.SUCCESS
+        }
+        val store = TestStore()
+        Loco.start(
+            LocoConfig(
+                store = store,
+                smashers = listOf(
+                    smasher
+                ),
+                senders = listOf(
+                    sender
+                ),
+                sendingBulkSize = 5
+            ) {
+                logToSmasher[smasher::class] = listOf(ClickLog::class)
+                logToSender[sender::class] = listOf(ClickLog::class)
+            },
+            this
+        )
+        repeat(0.until(100).count()) {
+            Loco.send(
+                ClickLog(1, "jack")
+            )
+        }
+
+        assertThat(store.storage.size).isEqualTo(100)
+
+        advanceTimeBy(6000)
+
+        Loco.stop()
+        coVerify { sender.send(any()) }
+        assertThat(store.storage.size).isEqualTo(95)
+    }
+
     // TODO failed
 
     // TODO retry
 
     // TODO filter
 
-    // TODO checker
+    // TODO default sender
 
     // TODO multi sender
 

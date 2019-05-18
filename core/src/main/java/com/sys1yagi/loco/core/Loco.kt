@@ -65,8 +65,7 @@ object Loco {
     }
 
     private suspend fun send(scope: CoroutineScope, config: LocoConfig) {
-        // TODO size config
-        val logs = config.store.load(10)
+        val logs = config.store.load(config.sendingBulkSize)
         logs.groupBy { it.senderTypeName }.forEach { entry ->
             val senderTypeName = entry.key
             val senderTypedLogs = entry.value
