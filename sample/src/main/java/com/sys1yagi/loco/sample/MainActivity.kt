@@ -2,6 +2,7 @@ package com.sys1yagi.loco.sample
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import com.google.gson.Gson
 import com.sys1yagi.loco.android.LocoAndroid
 import com.sys1yagi.loco.core.*
@@ -51,8 +52,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     class LogcatSender : Sender {
-        override fun send() {
-            // no op
+        override suspend fun send(logs: List<SmashedLog>): Result {
+            logs.forEach {
+                Log.d("logsender", it.toString())
+            }
+            return Result.SUCCESS
         }
     }
 

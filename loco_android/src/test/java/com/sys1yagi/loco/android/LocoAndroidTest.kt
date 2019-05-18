@@ -1,15 +1,16 @@
 package com.sys1yagi.loco.android
 
+import android.util.Log
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
 import com.sys1yagi.loco.core.*
 import com.sys1yagi.loco.core.internal.SmashedLog
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -123,7 +124,9 @@ class LocoAndroidTest {
     fun store() = runBlockingTest {
         val smasher: Smasher = mockk(relaxed = true)
         val sender: Sender = mockk(relaxed = true)
-        val store: Store = mockk(relaxed = true)
+        val store: Store = mockk(relaxed = true) {
+            coEvery { load(any()) }.returns(emptyList())
+        }
         LocoAndroid.start(
             LocoConfig(
                 store = store,
@@ -142,17 +145,66 @@ class LocoAndroidTest {
         LocoAndroid.send(
             ClickLog(1, "jack")
         )
-        coVerify { store.store(any()) }
+        LocoAndroid.send(
+            ClickLog(2, "jill")
+        )
+        LocoAndroid.send(
+            ClickLog(3, "desuger")
+        )
         LocoAndroid.stop()
+        coVerify(exactly = 3) { store.store(any()) }
     }
+
+    @Test
+    fun send() = runBlockingTest {
+        val smasher: Smasher = mockk(relaxed = true)
+        val sender: Sender = mockk(relaxed = true) {
+            coEvery { send(any()) } returns SendingResult.SUCCESS
+        }
+        val store = TestStore()
+        LocoAndroid.start(
+            LocoConfig(
+                store = store,
+                smashers = listOf(
+                    smasher
+                ),
+                senders = listOf(
+                    sender
+                )
+            ) {
+                logToSmasher[smasher::class] = listOf(ClickLog::class)
+                logToSender[sender::class] = listOf(ClickLog::class)
+            },
+            this
+        )
+        LocoAndroid.send(
+            ClickLog(1, "jack")
+        )
+        LocoAndroid.send(
+            ClickLog(2, "jill")
+        )
+        LocoAndroid.send(
+            ClickLog(3, "desuger")
+        )
+
+        assertThat(store.storage.size).isEqualTo(3)
+
+        advanceTimeBy(1500)
+
+        LocoAndroid.stop()
+        coVerify { sender.send(any()) }
+        assertThat(store.storage.size).isEqualTo(0)
+    }
+
+    // TODO failed
+
+    // TODO retry
 
     // TODO filter
 
-    // TODO sending
-
     // TODO checker
 
-    // TODO buffering
+    // TODO multi sender
 
     data class ClickLog(
         val id: Int,
@@ -171,22 +223,26 @@ class LocoAndroidTest {
     }
 
     class LogcatSender : Sender {
-        override fun send() {
-            // no op
+        override suspend fun send(logs: List<SmashedLog>): SendingResult {
+            logs.forEach {
+                Log.d("LogcatSender", it.toString())
+            }
+            return SendingResult.SUCCESS
         }
     }
 
     class TestStore : Store {
+        val storage = mutableListOf<SmashedLog>()
         override suspend fun store(log: SmashedLog) {
-            // no op
+            storage.add(log)
         }
 
         override suspend fun load(size: Int): List<SmashedLog> {
-            return emptyList()
+            return storage.take(size)
         }
 
         override suspend fun delete(logs: List<SmashedLog>) {
-            // no op
+            storage.removeAll(logs)
         }
     }
 }

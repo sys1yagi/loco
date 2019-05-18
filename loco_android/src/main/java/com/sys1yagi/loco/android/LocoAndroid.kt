@@ -1,9 +1,6 @@
 package com.sys1yagi.loco.android
 
-import com.sys1yagi.loco.core.LocoConfig
-import com.sys1yagi.loco.core.LocoLog
-import com.sys1yagi.loco.core.Sender
-import com.sys1yagi.loco.core.Smasher
+import com.sys1yagi.loco.core.*
 import com.sys1yagi.loco.core.internal.SmashedLog
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -12,35 +9,77 @@ import kotlin.reflect.KClass
 
 object LocoAndroid {
 
+    sealed class Event {
+        data class Store(val log: SmashedLog) : Event()
+        data class Send(val config: LocoConfig) : Event()
+    }
+
     var config: LocoConfig? = null
 
-    var channel: Channel<SmashedLog>? = null
+    var channel: Channel<Event>? = null
 
-    var job: Job? = null
+    var mainJob: Job? = null
+
+    var waitForNextSendingJob: Job? = null
 
     fun start(
         config: LocoConfig,
         coroutineScope: CoroutineScope = GlobalScope
     ) {
         this.config = config
-        channel = Channel()
-        job = coroutineScope.launch {
-            channel?.consumeEach { smashedLog ->
-                config.store.store(smashedLog)
+        channel = Channel(Channel.UNLIMITED)
+        mainJob = coroutineScope.launch {
+            channel?.consumeEach { event ->
+                println("consume: $event")
+                when (event) {
+                    is Event.Store -> {
+                        config.store.store(event.log)
+                    }
+                    is Event.Send -> {
+                        send(coroutineScope, event.config)
+                    }
+                }
             }
+        }
+        channel?.offer(LocoAndroid.Event.Send(config))
+    }
+
+    suspend fun send(scope: CoroutineScope, config: LocoConfig) {
+        // TODO size config
+        val logs = config.store.load(10)
+        logs.groupBy { it.senderTypeName }.forEach { entry ->
+            val senderTypeName = entry.key
+            val senderTypedLogs = entry.value
+            val sender = findSender(senderTypeName, config)
+
+            when (sender.send(senderTypedLogs)) {
+                SendingResult.SUCCESS, SendingResult.FAILED -> {
+                    config.store.delete(senderTypedLogs)
+                }
+                SendingResult.RETRY -> {
+                    // no op
+                }
+            }
+        }
+
+        waitForNextSendingJob?.cancel()
+        waitForNextSendingJob = scope.launch {
+            // TODO delay config
+            delay(5000)
+            channel?.offer(LocoAndroid.Event.Send(config))
         }
     }
 
     fun stop() {
         this.config = null
-        job?.cancel()
-        job = null
+        mainJob?.cancel()
+        mainJob = null
     }
 
     fun send(log: LocoLog) {
         val config = requireInitialized()
         val smasher = findSmasher(log, config)
-        val senderType = findSenderType(log, config)
+        val senderType = findSenderTypeWithLocoLog(log, config)
         val smashed = smasher.smash(log)
         val smashedLog = SmashedLog(
             log::class.java.name,
@@ -48,11 +87,12 @@ object LocoAndroid {
             senderType.java.name,
             smashed
         )
-        channel?.offer(smashedLog)
+        channel?.offer(LocoAndroid.Event.Store(smashedLog))
     }
 
-    private fun findSender(log: LocoLog, config: LocoConfig): Sender {
-        val senderType = findSenderType(log, config)
+    private fun findSender(senderTypeName: String, config: LocoConfig): Sender {
+        val senderType = Class.forName(senderTypeName)::kotlin.get()
+        // TODO type check
         return config.senders.find {
             it::class.java == senderType.java
         } ?: throw IllegalStateException(
@@ -63,13 +103,24 @@ object LocoAndroid {
         )
     }
 
-    private fun findSenderType(log: LocoLog, config: LocoConfig): KClass<out Sender> {
+    private fun findSenderTypeWithLocoLog(log: LocoLog, config: LocoConfig): KClass<out Sender> {
         return config.mapping.logToSender.entries.find { map ->
             map.value.any { it == log::class }
         }?.key ?: throw IllegalStateException(
             """
                     Missing mapping to Sender Type.
                     Set up the mapping of ${log::class.java.name} class.
+                    """.trimIndent()
+        )
+    }
+
+    private fun findSenderTypeWithKClass(klass: KClass<out LocoLog>, config: LocoConfig): KClass<out Sender> {
+        return config.mapping.logToSender.entries.find { map ->
+            map.value.any { it == klass }
+        }?.key ?: throw IllegalStateException(
+            """
+                    Missing mapping to Sender Type.
+                    Set up the mapping of ${klass::class.java.name} class.
                     """.trimIndent()
         )
     }
