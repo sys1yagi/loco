@@ -2,6 +2,7 @@ package com.sys1yagi.loco
 
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.sys1yagi.loco.core.*
 import com.sys1yagi.loco.core.internal.SmashedLog
 import io.mockk.*
@@ -25,13 +26,13 @@ class LocoTest {
             LocoConfig(
                 store = TestStore(),
                 smashers = listOf(
-                    JsonSmasher(Gson())
+                    GsonSmasher(Gson())
                 ),
                 senders = listOf(
                     StdOutSender()
                 )
             ) {
-                logToSmasher[JsonSmasher::class] = listOf(
+                logToSmasher[GsonSmasher::class] = listOf(
                     ClickLog::class
                 )
                 logToSender[StdOutSender::class] = listOf(
@@ -65,13 +66,13 @@ class LocoTest {
             LocoConfig(
                 store = TestStore(),
                 smashers = listOf(
-                    JsonSmasher(Gson())
+                    GsonSmasher(Gson())
                 ),
                 senders = listOf(
                     StdOutSender()
                 )
             ) {
-                logToSmasher[JsonSmasher::class] = listOf(
+                logToSmasher[GsonSmasher::class] = listOf(
                     ClickLog::class
                 )
                 logToSender[StdOutSender::class] = listOf(
@@ -346,11 +347,19 @@ class LocoTest {
         assertThat(store.storage.size).isEqualTo(95)
     }
 
-    // TODO failed
-
-    // TODO retry
-
-    // TODO filter
+    @Test
+    fun filter() {
+        val smasher = FilterableGsonSmasher(Gson())
+        smasher.registerFilter(EventTimeFilter(mockk {
+            every { now() } returns 10
+        }))
+        val smashed = smasher.smash(ClickLog(1, "jack"))
+        assertThat(smashed).isEqualTo(
+            """
+            {"id":1,"name":"jack","event_time":10}
+        """.trimIndent()
+        )
+    }
 
     // TODO default sender
 
@@ -361,14 +370,9 @@ class LocoTest {
         val name: String
     ) : LocoLog
 
-    class JsonSmasher(val gson: Gson) : Smasher {
-        private val filters = mutableListOf<Filter>()
+    class GsonSmasher(val gson: Gson) : Smasher {
         override fun smash(log: LocoLog): String {
             return gson.toJson(log)
-        }
-
-        override fun registerFilter(filter: Filter) {
-            filters.add(filter)
         }
     }
 
@@ -395,4 +399,36 @@ class LocoTest {
             storage.removeAll(logs)
         }
     }
+
+    interface JsonFilter {
+        fun filter(json: JsonObject): JsonObject
+    }
+
+    interface TimeProvider {
+        fun now(): Long
+    }
+
+    class EventTimeFilter(val timeProvider: TimeProvider) : JsonFilter {
+        override fun filter(json: JsonObject): JsonObject {
+            json.addProperty("event_time", timeProvider.now())
+            return json
+        }
+    }
+
+    class FilterableGsonSmasher(private val gson: Gson) : Smasher {
+        private val filters = mutableListOf<JsonFilter>()
+        override fun smash(log: LocoLog): String {
+            val jsonObject = gson.toJsonTree(log) as JsonObject
+            filters.forEach {
+                it.filter(jsonObject)
+            }
+            return jsonObject.toString()
+        }
+
+        fun registerFilter(filter: JsonFilter) {
+            filters.add(filter)
+        }
+    }
+
+
 }
