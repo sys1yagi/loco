@@ -5,20 +5,36 @@ import com.sys1yagi.loco.core.LocoLog
 import com.sys1yagi.loco.core.Sender
 import com.sys1yagi.loco.core.Smasher
 import com.sys1yagi.loco.core.internal.SmashedLog
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlin.reflect.KClass
 
 object LocoAndroid {
 
     var config: LocoConfig? = null
 
-    fun start(config: LocoConfig) {
+    var channel: Channel<SmashedLog>? = null
+
+    var job: Job? = null
+
+    fun start(
+        config: LocoConfig,
+        coroutineScope: CoroutineScope = GlobalScope
+    ) {
         this.config = config
-        // TODO
-        // start receive channel
+        channel = Channel()
+        job = coroutineScope.launch {
+            channel?.consumeEach { smashedLog ->
+                config.store.store(smashedLog)
+            }
+        }
     }
 
     fun stop() {
         this.config = null
+        job?.cancel()
+        job = null
     }
 
     fun send(log: LocoLog) {
@@ -32,7 +48,7 @@ object LocoAndroid {
             senderType.java.name,
             smashed
         )
-        config.store.store(smashedLog)
+        channel?.offer(smashedLog)
     }
 
     private fun findSender(log: LocoLog, config: LocoConfig): Sender {

@@ -38,12 +38,14 @@ android {
 dependencies {
     api project(':core')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1'
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.4.2"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.4.2"
     testImplementation "com.google.truth:truth:0.44"
     testImplementation "io.mockk:mockk:1.9.3"
     testImplementation "com.google.code.gson:gson:2.8.5"
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.2.1'
 
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'

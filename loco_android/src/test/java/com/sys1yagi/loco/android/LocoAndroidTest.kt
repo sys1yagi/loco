@@ -4,8 +4,11 @@ import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
 import com.sys1yagi.loco.core.*
 import com.sys1yagi.loco.core.internal.SmashedLog
+import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.test.runBlockingTest
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -13,8 +16,8 @@ import org.junit.jupiter.api.assertThrows
 
 class LocoAndroidTest {
 
-    @BeforeEach
-    fun setUp() {
+    @AfterEach
+    fun tearDown() {
         LocoAndroid.stop()
     }
 
@@ -117,7 +120,7 @@ class LocoAndroidTest {
     }
 
     @Test
-    fun store() {
+    fun store() = runBlockingTest {
         val smasher: Smasher = mockk(relaxed = true)
         val sender: Sender = mockk(relaxed = true)
         val store: Store = mockk(relaxed = true)
@@ -133,12 +136,14 @@ class LocoAndroidTest {
             ) {
                 logToSmasher[smasher::class] = listOf(ClickLog::class)
                 logToSender[sender::class] = listOf(ClickLog::class)
-            }
+            },
+            this
         )
         LocoAndroid.send(
             ClickLog(1, "jack")
         )
-        verify { store.store(any()) }
+        coVerify { store.store(any()) }
+        LocoAndroid.stop()
     }
 
     // TODO filter
@@ -172,15 +177,15 @@ class LocoAndroidTest {
     }
 
     class TestStore : Store {
-        override fun store(log: SmashedLog) {
+        override suspend fun store(log: SmashedLog) {
             // no op
         }
 
-        override fun load(size: Int): List<SmashedLog> {
+        override suspend fun load(size: Int): List<SmashedLog> {
             return emptyList()
         }
 
-        override fun delete(logs: List<SmashedLog>) {
+        override suspend fun delete(logs: List<SmashedLog>) {
             // no op
         }
     }

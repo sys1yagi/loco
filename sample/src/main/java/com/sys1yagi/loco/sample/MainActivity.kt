@@ -57,15 +57,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     class TestStore : Store {
-        override fun store(log: SmashedLog) {
+        override suspend fun store(log: SmashedLog) {
             // no op
         }
 
-        override fun load(size: Int): List<SmashedLog> {
+        override suspend fun load(size: Int): List<SmashedLog> {
             return emptyList()
         }
 
-        override fun delete(logs: List<SmashedLog>) {
+        override suspend fun delete(logs: List<SmashedLog>) {
             // no op
         }
     }
