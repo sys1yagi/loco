@@ -25,6 +25,8 @@ object Loco {
         config: LocoConfig,
         coroutineScope: CoroutineScope = GlobalScope
     ) {
+        requireNotInitialized()
+
         Loco.config = config
         channel = Channel(Channel.UNLIMITED)
         mainJob = coroutineScope.launch {
@@ -155,5 +157,14 @@ object Loco {
         )
     }
 
+    private fun requireNotInitialized() {
+        if (this.config != null) {
+            throw IllegalStateException(
+                """
+                    Loco is already initialized.
+                    """.trimIndent()
+            )
+        }
+    }
 }
 

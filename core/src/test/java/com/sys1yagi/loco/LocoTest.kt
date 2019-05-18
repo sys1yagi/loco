@@ -62,7 +62,37 @@ class LocoTest {
         )
     }
 
-    // TODO alreadyInitialized
+    @Test
+    fun alreadyInitialized() {
+        Loco.start(
+            LocoConfig(
+                store = TestStore(),
+                smashers = listOf(
+                    JsonSmasher(Gson())
+                ),
+                senders = listOf(
+                    StdOutSender()
+                )
+            ) {
+                logToSmasher[JsonSmasher::class] = listOf(
+                    ClickLog::class
+                )
+                logToSender[StdOutSender::class] = listOf(
+                    ClickLog::class
+                )
+            }
+        )
+        val error = assertThrows<IllegalStateException>("error") {
+            Loco.start(
+                mockk()
+            )
+        }
+        assertThat(error.message).isEqualTo(
+            """
+            Loco is already initialized.
+        """.trimIndent()
+        )
+    }
 
     @Test
     fun smasherMapping() {
