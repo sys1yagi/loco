@@ -13,13 +13,13 @@ object Loco {
         data class Send(val config: LocoConfig) : Event()
     }
 
-    var config: LocoConfig? = null
+    private var config: LocoConfig? = null
 
-    var channel: Channel<Event>? = null
+    private var channel: Channel<Event>? = null
 
-    var mainJob: Job? = null
+    private var mainJob: Job? = null
 
-    var waitForNextSendingJob: Job? = null
+    private var waitForNextSendingJob: Job? = null
 
     fun start(
         config: LocoConfig,
@@ -29,7 +29,6 @@ object Loco {
         channel = Channel(Channel.UNLIMITED)
         mainJob = coroutineScope.launch {
             channel?.consumeEach { event ->
-                println("consume: $event")
                 when (event) {
                     is Event.Store -> {
                         config.store.store(event.log)
@@ -43,7 +42,27 @@ object Loco {
         channel?.offer(Loco.Event.Send(config))
     }
 
-    suspend fun send(scope: CoroutineScope, config: LocoConfig) {
+    fun stop() {
+        config = null
+        mainJob?.cancel()
+        mainJob = null
+    }
+
+    fun send(log: LocoLog) {
+        val config = requireInitialized()
+        val smasher = findSmasher(log, config)
+        val senderType = findSenderTypeWithLocoLog(log, config)
+        val smashed = smasher.smash(log)
+        val smashedLog = SmashedLog(
+            log::class.java.name,
+            smasher::class.java.name,
+            senderType.java.name,
+            smashed
+        )
+        channel?.offer(Loco.Event.Store(smashedLog))
+    }
+
+    private suspend fun send(scope: CoroutineScope, config: LocoConfig) {
         // TODO size config
         val logs = config.store.load(10)
         logs.groupBy { it.senderTypeName }.forEach { entry ->
@@ -67,26 +86,6 @@ object Loco {
             delay(5000)
             channel?.offer(Loco.Event.Send(config))
         }
-    }
-
-    fun stop() {
-        config = null
-        mainJob?.cancel()
-        mainJob = null
-    }
-
-    fun send(log: LocoLog) {
-        val config = requireInitialized()
-        val smasher = findSmasher(log, config)
-        val senderType = findSenderTypeWithLocoLog(log, config)
-        val smashed = smasher.smash(log)
-        val smashedLog = SmashedLog(
-            log::class.java.name,
-            smasher::class.java.name,
-            senderType.java.name,
-            smashed
-        )
-        channel?.offer(Loco.Event.Store(smashedLog))
     }
 
     private fun findSender(senderTypeName: String, config: LocoConfig): Sender {
