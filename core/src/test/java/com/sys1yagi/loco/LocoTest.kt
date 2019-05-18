@@ -1,6 +1,5 @@
-package com.sys1yagi.loco.android
+package com.sys1yagi.loco
 
-import android.util.Log
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
 import com.sys1yagi.loco.core.*
@@ -15,35 +14,35 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 
-class LocoAndroidTest {
+class LocoTest {
 
     @AfterEach
     fun tearDown() {
-        LocoAndroid.stop()
+        Loco.stop()
     }
 
     @Test
     fun initialize() {
         // it is sample code
-        LocoAndroid.start(
+        Loco.start(
             LocoConfig(
                 store = TestStore(),
                 smashers = listOf(
                     JsonSmasher(Gson())
                 ),
                 senders = listOf(
-                    LogcatSender()
+                    StdOutSender()
                 )
             ) {
                 logToSmasher[JsonSmasher::class] = listOf(
                     ClickLog::class
                 )
-                logToSender[LogcatSender::class] = listOf(
+                logToSender[StdOutSender::class] = listOf(
                     ClickLog::class
                 )
             }
         )
-        LocoAndroid.send(
+        Loco.send(
             ClickLog(1, "jack")
         )
     }
@@ -51,7 +50,7 @@ class LocoAndroidTest {
     @Test
     fun notYetInitialized() {
         val error = assertThrows<IllegalStateException>("error") {
-            LocoAndroid.send(
+            Loco.send(
                 ClickLog(1, "jack")
             )
         }
@@ -68,23 +67,23 @@ class LocoAndroidTest {
     @Test
     fun smasherMapping() {
         val smasher: Smasher = mockk(relaxed = true)
-        LocoAndroid.start(
+        Loco.start(
             LocoConfig(
                 store = TestStore(),
                 smashers = listOf(
                     smasher
                 ),
                 senders = listOf(
-                    LogcatSender()
+                    StdOutSender()
                 )
             ) {
                 logToSmasher[smasher::class] = listOf(ClickLog::class)
-                logToSender[LogcatSender::class] = listOf(
+                logToSender[StdOutSender::class] = listOf(
                     ClickLog::class
                 )
             }
         )
-        LocoAndroid.send(
+        Loco.send(
             ClickLog(1, "jack")
         )
         verify { smasher.smash(any()) }
@@ -94,7 +93,7 @@ class LocoAndroidTest {
     fun senderMappingMissing() {
         val smasher: Smasher = mockk(relaxed = true)
         val sender: Sender = mockk(relaxed = true)
-        LocoAndroid.start(
+        Loco.start(
             LocoConfig(
                 store = TestStore(),
                 smashers = listOf(
@@ -108,14 +107,14 @@ class LocoAndroidTest {
             }
         )
         val error = assertThrows<IllegalStateException>("error") {
-            LocoAndroid.send(
+            Loco.send(
                 ClickLog(1, "jack")
             )
         }
         assertThat(error.message).isEqualTo(
             """
             Missing mapping to Sender Type.
-            Set up the mapping of com.sys1yagi.loco.android.LocoAndroidTest${"$"}ClickLog class.
+            Set up the mapping of com.sys1yagi.loco.LocoTest${"$"}ClickLog class.
         """.trimIndent()
         )
     }
@@ -127,7 +126,7 @@ class LocoAndroidTest {
         val store: Store = mockk(relaxed = true) {
             coEvery { load(any()) }.returns(emptyList())
         }
-        LocoAndroid.start(
+        Loco.start(
             LocoConfig(
                 store = store,
                 smashers = listOf(
@@ -142,16 +141,16 @@ class LocoAndroidTest {
             },
             this
         )
-        LocoAndroid.send(
+        Loco.send(
             ClickLog(1, "jack")
         )
-        LocoAndroid.send(
+        Loco.send(
             ClickLog(2, "jill")
         )
-        LocoAndroid.send(
+        Loco.send(
             ClickLog(3, "desuger")
         )
-        LocoAndroid.stop()
+        Loco.stop()
         coVerify(exactly = 3) { store.store(any()) }
     }
 
@@ -162,7 +161,7 @@ class LocoAndroidTest {
             coEvery { send(any()) } returns SendingResult.SUCCESS
         }
         val store = TestStore()
-        LocoAndroid.start(
+        Loco.start(
             LocoConfig(
                 store = store,
                 smashers = listOf(
@@ -177,21 +176,21 @@ class LocoAndroidTest {
             },
             this
         )
-        LocoAndroid.send(
+        Loco.send(
             ClickLog(1, "jack")
         )
-        LocoAndroid.send(
+        Loco.send(
             ClickLog(2, "jill")
         )
-        LocoAndroid.send(
+        Loco.send(
             ClickLog(3, "desuger")
         )
 
         assertThat(store.storage.size).isEqualTo(3)
 
-        advanceTimeBy(1500)
+        advanceTimeBy(6000)
 
-        LocoAndroid.stop()
+        Loco.stop()
         coVerify { sender.send(any()) }
         assertThat(store.storage.size).isEqualTo(0)
     }
@@ -222,10 +221,10 @@ class LocoAndroidTest {
         }
     }
 
-    class LogcatSender : Sender {
+    class StdOutSender : Sender {
         override suspend fun send(logs: List<SmashedLog>): SendingResult {
             logs.forEach {
-                Log.d("LogcatSender", it.toString())
+                println(it.toString())
             }
             return SendingResult.SUCCESS
         }

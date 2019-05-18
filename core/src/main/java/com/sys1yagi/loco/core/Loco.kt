@@ -1,13 +1,12 @@
-package com.sys1yagi.loco.android
+package com.sys1yagi.loco.core
 
-import com.sys1yagi.loco.core.*
 import com.sys1yagi.loco.core.internal.SmashedLog
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
 import kotlin.reflect.KClass
 
-object LocoAndroid {
+object Loco {
 
     sealed class Event {
         data class Store(val log: SmashedLog) : Event()
@@ -26,7 +25,7 @@ object LocoAndroid {
         config: LocoConfig,
         coroutineScope: CoroutineScope = GlobalScope
     ) {
-        this.config = config
+        Loco.config = config
         channel = Channel(Channel.UNLIMITED)
         mainJob = coroutineScope.launch {
             channel?.consumeEach { event ->
@@ -41,7 +40,7 @@ object LocoAndroid {
                 }
             }
         }
-        channel?.offer(LocoAndroid.Event.Send(config))
+        channel?.offer(Loco.Event.Send(config))
     }
 
     suspend fun send(scope: CoroutineScope, config: LocoConfig) {
@@ -66,12 +65,12 @@ object LocoAndroid {
         waitForNextSendingJob = scope.launch {
             // TODO delay config
             delay(5000)
-            channel?.offer(LocoAndroid.Event.Send(config))
+            channel?.offer(Loco.Event.Send(config))
         }
     }
 
     fun stop() {
-        this.config = null
+        config = null
         mainJob?.cancel()
         mainJob = null
     }
@@ -87,7 +86,7 @@ object LocoAndroid {
             senderType.java.name,
             smashed
         )
-        channel?.offer(LocoAndroid.Event.Store(smashedLog))
+        channel?.offer(Loco.Event.Store(smashedLog))
     }
 
     private fun findSender(senderTypeName: String, config: LocoConfig): Sender {
@@ -149,7 +148,7 @@ object LocoAndroid {
     }
 
     private fun requireInitialized(): LocoConfig {
-        return this.config ?: throw IllegalStateException(
+        return config ?: throw IllegalStateException(
             """
                     Loco is not yet initialized.
                     Please call start(config: LocoConfig) first.
