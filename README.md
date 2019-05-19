@@ -238,7 +238,7 @@ SmashedLog has a serialized log and type names.
 
 Store is responsible for persisting, reading and deleting SmashedLog.
 
-```
+```kotlin
 interface Store {
   suspend fun store(log: SmashedLog)
   suspend fun load(size: Int): List<SmashedLog>
