@@ -46,7 +46,7 @@ class LocoAndroidSqliteDatabase(context: Context) :
                 $COLUMN_NAME_LOG_TYPE TEXT,
                 $COLUMN_NAME_SMASHER_TYPE TEXT,
                 $COLUMN_NAME_SENDER_TYPE TEXT,
-                $COLUMN_NAME_SMASHED_LOG TEXT,
+                $COLUMN_NAME_SMASHED_LOG TEXT
             );
         """.trimIndent()
         db?.execSQL(query)
@@ -72,12 +72,8 @@ class LocoAndroidSqliteDatabase(context: Context) :
                 ORDER BY id ASC
                 LIMIT $size
         """.trimIndent()
-        val cursor = readableDatabase.rawQuery(query, arrayOf())
-
-        try {
+        readableDatabase.rawQuery(query, arrayOf()).use { cursor ->
             return recordsFromCursor(cursor)
-        } finally {
-            cursor.close()
         }
     }
 
@@ -87,6 +83,24 @@ class LocoAndroidSqliteDatabase(context: Context) :
             WHERE id IN (${records.map { it.id }.joinToString(",")} )
         """.trimIndent()
         writableDatabase.execSQL(query)
+    }
+
+    fun clear() {
+        val query = """
+            DELETE FROM $TABLE_NAME
+        """.trimIndent()
+        writableDatabase.execSQL(query)
+    }
+
+    fun count(): Int {
+        val query = "SELECT COUNT(*) FROM $TABLE_NAME"
+        readableDatabase.rawQuery(query, null).use { cursor ->
+            return if (cursor.moveToNext()) {
+                cursor.getInt(0)
+            } else {
+                0
+            }
+        }
     }
 
     private fun recordsFromCursor(cursor: Cursor): List<Record> {

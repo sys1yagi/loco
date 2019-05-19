@@ -1,12 +1,5 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: "de.mannodermaus.android-junit5"
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
-    }
-}
 
 android {
     compileSdkVersion 28
@@ -28,15 +21,6 @@ android {
         }
     }
 
-    testOptions {
-        unitTests.all {
-            useJUnitPlatform()
-        }
-    }
-    compileOptions {
-        sourceCompatibility = '1.8'
-        targetCompatibility = '1.8'
-    }
     buildToolsVersion = '28.0.3'
 
 }
@@ -46,13 +30,9 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1'
 
-    testImplementation "org.junit.jupiter:junit-jupiter-api:5.4.2"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.4.2"
-    testImplementation "com.google.truth:truth:0.44"
-    testImplementation "io.mockk:mockk:1.9.3"
-    testImplementation "com.google.code.gson:gson:2.8.5"
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.2.1'
-
+    androidTestImplementation("junit:junit:4.12")
     androidTestImplementation 'androidx.test:runner:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    androidTestImplementation('androidx.test.ext:truth:1.1.0') {
+        exclude group: 'com.google.auto.value', module: 'auto-value-annotations'
+    }
 }

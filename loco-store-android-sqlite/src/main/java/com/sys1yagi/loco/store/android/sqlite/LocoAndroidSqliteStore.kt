@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 
 class LocoAndroidSqliteStore(context: Context) : Store {
 
-    val database = LocoAndroidSqliteDatabase(context)
+    private val database = LocoAndroidSqliteDatabase(context)
 
     override suspend fun store(log: SmashedLog) {
         withContext(Dispatchers.IO) {
@@ -41,6 +41,17 @@ class LocoAndroidSqliteStore(context: Context) : Store {
                     it.smashedLog
                 )
             })
+        }
+    }
+
+    suspend fun count(): Int =
+        withContext(Dispatchers.IO) {
+            database.count()
+        }
+
+    suspend fun clear() {
+        withContext(Dispatchers.IO) {
+            database.clear()
         }
     }
 }
