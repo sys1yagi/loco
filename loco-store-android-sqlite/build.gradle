@@ -18,6 +18,7 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
     }
 
     buildTypes {
@@ -32,17 +33,17 @@ android {
             useJUnitPlatform()
         }
     }
-    buildToolsVersion = '28.0.3'
     compileOptions {
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
     }
+    buildToolsVersion = '28.0.3'
+
 }
 
 dependencies {
     implementation project(':loco-core')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "com.google.code.gson:gson:2.8.5"
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.4.2"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.4.2"
@@ -50,4 +51,7 @@ dependencies {
     testImplementation "io.mockk:mockk:1.9.3"
     testImplementation "com.google.code.gson:gson:2.8.5"
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.2.1'
+
+    androidTestImplementation 'androidx.test:runner:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
 }

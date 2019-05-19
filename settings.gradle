@@ -1,1 +1,1 @@
-include ':loco-core', ':sample', ':loco-smasher-filterable-gson'
+include ':loco-core', ':sample', ':loco-smasher-filterable-gson', ':loco-store-android-sqlite'
