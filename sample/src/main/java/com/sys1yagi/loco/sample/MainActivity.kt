@@ -1,6 +1,6 @@
 package com.sys1yagi.loco.sample
 
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import com.google.gson.Gson
