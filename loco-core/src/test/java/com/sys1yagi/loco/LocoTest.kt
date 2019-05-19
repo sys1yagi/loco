@@ -330,7 +330,59 @@ class LocoTest {
 
     // TODO default sender
 
-    // TODO multi sender
+    @Test
+    fun multiSender() = runBlockingTest {
+        val smasher: Smasher = mockk(relaxed = true)
+        val sender1: Sender = spyk(StdOutSender())
+        val sender2: Sender = spyk(FileSender())
+
+        val store = TestStore()
+        Loco.start(
+            LocoConfig(
+                store = store,
+                smasher = smasher,
+                senders = listOf(
+                    sender1, sender2
+                ),
+                scheduler = IntervalSendingScheduler(5000L),
+                internist = object : Internist {
+                    override fun onSend(locoLog: LocoLog, config: LocoConfig) {
+                        // no op
+                    }
+
+                    override fun onStore(log: SmashedLog, config: LocoConfig) {
+                        // no op
+                    }
+
+                    override fun onStartSending() {
+                        println("onStartSending")
+                    }
+
+                    override fun onSending(sender: Sender, logs: List<SmashedLog>, config: LocoConfig) {
+                        println("onSending: ${sender}, ${logs.size}")
+                    }
+
+                    override fun onEndSending(sendingResults: List<Pair<Sender, SendingResult>>, config: LocoConfig) {
+                        println("onStartSending")
+                    }
+                }
+            ) {
+                logToSender[StdOutSender::class] = listOf(ClickLog::class)
+                logToSender[FileSender::class] = listOf(ClickLog::class)
+            },
+            this
+        )
+
+        Loco.send(
+            ClickLog(1, "jack")
+        )
+
+        advanceTimeBy(6000)
+
+        Loco.stop()
+        coVerify { sender1.send(any()) }
+        coVerify { sender2.send(any()) }
+    }
 
     data class ClickLog(
         val id: Int,
@@ -344,6 +396,15 @@ class LocoTest {
     }
 
     class StdOutSender : Sender {
+        override suspend fun send(logs: List<SmashedLog>): SendingResult {
+            logs.forEach {
+                println(it.toString())
+            }
+            return SendingResult.SUCCESS
+        }
+    }
+
+    class FileSender : Sender {
         override suspend fun send(logs: List<SmashedLog>): SendingResult {
             logs.forEach {
                 println(it.toString())

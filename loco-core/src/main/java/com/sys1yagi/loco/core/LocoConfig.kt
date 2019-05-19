@@ -8,6 +8,7 @@ class LocoConfig(
     val senders: List<Sender>,
     val scheduler: SendingScheduler,
     val sendingBulkSize: Int = 10,
+    val internist: Internist? = null,
     mapper: Mapper.() -> Unit
 ) {
     val mapping = Mapper().apply {
