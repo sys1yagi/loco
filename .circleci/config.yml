@@ -1,0 +1,51 @@
+version: 2
+defaults: &defaults
+  working_directory: ~/code
+  docker:
+    - image: circleci/android:api-28-alpha
+  environment:
+    JVM_OPTS: -Xmx2048m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2
+    GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs='-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8'"
+    _JAVA_OPTIONS: "-Xmx1500m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -XX:ParallelGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2"
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "app/build.gradle" }}
+      - run:
+          name: Download Dependencies
+          command: ./gradlew androidDependencies
+      - save_cache:
+          paths:
+            - ~/.gradle
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "app/build.gradle" }}
+      - run:
+          name: Run Test
+          no_output_timeout: 30m
+          #           why set gradle options? https://youtrack.jetbrains.com/issue/KT-17601
+          command: ./gradlew test --no-daemon -Dkotlin.compiler.execution.strategy=in-process -PdisablePreDex --stacktrace
+      - store_artifacts:
+          path: loco-core/build/reports
+          destination: loco-core-reports
+      - store_test_results:
+          path: loco-core/build/test-results
+      - store_artifacts:
+          path: loco-smasher-filterable-gson/build/reports
+          destination: loco-smasher-filterable-gson-reports
+      - store_test_results:
+          path: loco-smasher-filterable-gson/build/test-results
+      - persist_to_workspace:
+          root: ~/code
+          paths:
+            - .
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
