@@ -25,21 +25,21 @@ class LocoAndroidSqliteDatabase(context: Context) :
         );
 
     companion object {
-        private val DATABASE_NAME = "loco-android-sqlite.db"
+        private const val DATABASE_NAME = "loco-android-sqlite.db"
 
-        private val TABLE_NAME = "logs"
+        private const val TABLE_NAME = "logs"
 
-        private val COLUMN_NAME_LOG_TYPE = "log_type"
+        private const val COLUMN_NAME_LOG_TYPE = "log_type"
 
-        private val COLUMN_NAME_SMASHER_TYPE = "smasher_type"
+        private const val COLUMN_NAME_SMASHER_TYPE = "smasher_type"
 
-        private val COLUMN_NAME_SENDER_TYPE = "sender_type"
+        private const val COLUMN_NAME_SENDER_TYPE = "sender_type"
 
-        private val COLUMN_NAME_SMASHED_LOG = "smashed_log"
+        private const val COLUMN_NAME_SMASHED_LOG = "smashed_log"
 
-        private val COLUMN_NAME_CREATED_AT = "created_at"
+        private const val COLUMN_NAME_CREATED_AT = "created_at"
 
-        private val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 1
 
         fun databaseName(context: Context): String {
             val processName = ProcessName.getAndroidProcessName(context)
