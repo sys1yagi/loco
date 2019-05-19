@@ -52,7 +52,7 @@ object Loco {
 
     fun send(log: LocoLog) {
         val config = requireInitialized()
-        val smasher = findSmasher(log, config)
+        val smasher = config.smasher
         val senderType = findSenderTypeWithLocoLog(log, config)
         val smashed = smasher.smash(log)
         val smashedLog = SmashedLog(
@@ -91,7 +91,6 @@ object Loco {
 
     private fun findSender(senderTypeName: String, config: LocoConfig): Sender {
         val senderType = Class.forName(senderTypeName)::kotlin.get()
-        // TODO type check
         return config.senders.find {
             it::class.java == senderType.java
         } ?: throw IllegalStateException(
@@ -120,29 +119,6 @@ object Loco {
             """
                     Missing mapping to Sender Type.
                     Set up the mapping of ${klass::class.java.name} class.
-                    """.trimIndent()
-        )
-    }
-
-    private fun findSmasher(log: LocoLog, config: LocoConfig): Smasher {
-        val smasherType = findSmasherType(log, config)
-        return config.smashers.find {
-            it::class.java == smasherType.java
-        } ?: throw IllegalStateException(
-            """
-                    Missing Smasher.
-                    Add ${smasherType.java.name} to LocoConfig#smashers.
-                    """.trimIndent()
-        )
-    }
-
-    private fun findSmasherType(log: LocoLog, config: LocoConfig): KClass<out Smasher> {
-        return config.mapping.logToSmasher.entries.find { map ->
-            map.value.any { it == log::class }
-        }?.key ?: throw IllegalStateException(
-            """
-                    Missing mapping to Smasher Type.
-                    Set up the mapping of ${log::class.java.name} class.
                     """.trimIndent()
         )
     }

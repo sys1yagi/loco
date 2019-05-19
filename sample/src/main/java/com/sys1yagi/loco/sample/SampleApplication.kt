@@ -14,17 +14,11 @@ class SampleApplication : Application() {
         Loco.start(
             LocoConfig(
                 store = InMemoryStore(),
-                smashers = listOf(
-                    GsonSmasher(Gson())
-                ),
+                smasher = GsonSmasher(Gson()),
                 senders = listOf(
                     LogcatSender()
                 )
             ) {
-                logToSmasher[GsonSmasher::class] = listOf(
-                    ClickLog::class,
-                    ScreenLog::class
-                )
                 logToSender[LogcatSender::class] = listOf(
                     ClickLog::class,
                     ScreenLog::class

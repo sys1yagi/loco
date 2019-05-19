@@ -4,7 +4,7 @@ import kotlin.reflect.KClass
 
 class LocoConfig(
     val store: Store,
-    val smashers: List<Smasher>,
+    val smasher: Smasher,
     val senders: List<Sender>,
     val sendingBulkSize: Int = 10,
     mapper: Mapper.() -> Unit
@@ -14,7 +14,6 @@ class LocoConfig(
     }
 
     class Mapper {
-        val logToSmasher = hashMapOf<KClass<out Smasher>, List<KClass<out LocoLog>>>()
         val logToSender = hashMapOf<KClass<out Sender>, List<KClass<out LocoLog>>>()
         var defaultSender: Sender? = null // TODO
     }

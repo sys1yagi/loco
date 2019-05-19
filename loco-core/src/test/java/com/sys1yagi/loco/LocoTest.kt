@@ -2,7 +2,6 @@ package com.sys1yagi.loco
 
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
-import com.google.gson.JsonObject
 import com.sys1yagi.loco.core.*
 import com.sys1yagi.loco.core.internal.SmashedLog
 import io.mockk.*
@@ -25,16 +24,11 @@ class LocoTest {
         Loco.start(
             LocoConfig(
                 store = TestStore(),
-                smashers = listOf(
-                    GsonSmasher(Gson())
-                ),
+                smasher = GsonSmasher(Gson()),
                 senders = listOf(
                     StdOutSender()
                 )
             ) {
-                logToSmasher[GsonSmasher::class] = listOf(
-                    ClickLog::class
-                )
                 logToSender[StdOutSender::class] = listOf(
                     ClickLog::class
                 )
@@ -65,16 +59,11 @@ class LocoTest {
         Loco.start(
             LocoConfig(
                 store = TestStore(),
-                smashers = listOf(
-                    GsonSmasher(Gson())
-                ),
+                smasher = GsonSmasher(Gson()),
                 senders = listOf(
                     StdOutSender()
                 )
             ) {
-                logToSmasher[GsonSmasher::class] = listOf(
-                    ClickLog::class
-                )
                 logToSender[StdOutSender::class] = listOf(
                     ClickLog::class
                 )
@@ -98,14 +87,11 @@ class LocoTest {
         Loco.start(
             LocoConfig(
                 store = TestStore(),
-                smashers = listOf(
-                    smasher
-                ),
+                smasher = smasher,
                 senders = listOf(
                     StdOutSender()
                 )
             ) {
-                logToSmasher[smasher::class] = listOf(ClickLog::class)
                 logToSender[StdOutSender::class] = listOf(
                     ClickLog::class
                 )
@@ -124,14 +110,12 @@ class LocoTest {
         Loco.start(
             LocoConfig(
                 store = TestStore(),
-                smashers = listOf(
-                    smasher
-                ),
+                smasher = smasher,
                 senders = listOf(
                     sender
                 )
             ) {
-                logToSmasher[smasher::class] = listOf(ClickLog::class)
+
             }
         )
         val error = assertThrows<IllegalStateException>("error") {
@@ -157,14 +141,11 @@ class LocoTest {
         Loco.start(
             LocoConfig(
                 store = store,
-                smashers = listOf(
-                    smasher
-                ),
+                smasher = smasher,
                 senders = listOf(
                     sender
                 )
             ) {
-                logToSmasher[smasher::class] = listOf(ClickLog::class)
                 logToSender[sender::class] = listOf(ClickLog::class)
             },
             this
@@ -192,14 +173,11 @@ class LocoTest {
         Loco.start(
             LocoConfig(
                 store = store,
-                smashers = listOf(
-                    smasher
-                ),
+                smasher = smasher,
                 senders = listOf(
                     sender
                 )
             ) {
-                logToSmasher[smasher::class] = listOf(ClickLog::class)
                 logToSender[sender::class] = listOf(ClickLog::class)
             },
             this
@@ -233,14 +211,11 @@ class LocoTest {
         Loco.start(
             LocoConfig(
                 store = store,
-                smashers = listOf(
-                    smasher
-                ),
+                smasher = smasher,
                 senders = listOf(
                     sender
                 )
             ) {
-                logToSmasher[smasher::class] = listOf(ClickLog::class)
                 logToSender[sender::class] = listOf(ClickLog::class)
             },
             this
@@ -275,14 +250,11 @@ class LocoTest {
         Loco.start(
             LocoConfig(
                 store = store,
-                smashers = listOf(
-                    smasher
-                ),
+                smasher = smasher,
                 senders = listOf(
                     sender
                 )
             ) {
-                logToSmasher[smasher::class] = listOf(ClickLog::class)
                 logToSender[sender::class] = listOf(ClickLog::class)
             },
             this
@@ -319,15 +291,12 @@ class LocoTest {
         Loco.start(
             LocoConfig(
                 store = store,
-                smashers = listOf(
-                    smasher
-                ),
+                smasher = smasher,
                 senders = listOf(
                     sender
                 ),
                 sendingBulkSize = 5
             ) {
-                logToSmasher[smasher::class] = listOf(ClickLog::class)
                 logToSender[sender::class] = listOf(ClickLog::class)
             },
             this
