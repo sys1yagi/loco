@@ -1,0 +1,72 @@
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+// Bintray upload
+group = groupName
+version = versionName
+
+def SITE_URL = 'https://github.com/sys1yagi/loco'
+def GIT_URL = 'https://github.com/sys1yagi/loco.git'
+
+def USER = System.getenv("bintray_user")
+def KEY = System.getenv("bintray_api_key")
+
+bintray {
+    user = USER
+    key = KEY
+
+    configurations = ['archives']
+    pkg {
+        repo = 'maven'
+        name = 'loco'
+        desc = 'loco (Log Coroutine) is a logging library using coroutine for Android.'
+        websiteUrl = SITE_URL
+        issueTrackerUrl = 'https://github.com/sys1yagi/loco/issues'
+        vcsUrl = GIT_URL
+        licenses = ['MIT']
+        labels = ['aar', 'android', 'kotlin', 'logging']
+        publicDownloadNumbers = true
+        githubRepo = 'sys1yagi/loco'
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+install {
+    repositories.mavenInstaller {
+        pom.project {
+            artifactId archivesBaseName
+            name moduleName
+
+            packaging 'jar'
+            url SITE_URL
+
+            licenses {
+                license {
+                    name 'The MIT License'
+                    url 'https://opensource.org/licenses/MIT'
+                }
+            }
+            developers {
+                developer {
+                    id 'sys1yagi'
+                    name 'Toshihiro Yagi'
+                    email 'sylc.yagi@gmail.com'
+                }
+            }
+            scm {
+                connection GIT_URL
+                developerConnection GIT_URL
+                url SITE_URL
+            }
+        }
+    }
+}

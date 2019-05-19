@@ -1,6 +1,8 @@
 apply plugin: 'java-library'
 apply plugin: 'kotlin'
 
+ext.moduleName = "Log core module"
+
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8
@@ -12,7 +14,6 @@ configurations {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1'
 
@@ -61,3 +62,5 @@ task ktlintFormat(type: JavaExec, group: "formatting") {
     main = "com.pinterest.ktlint.Main"
     args "-F", "src/**/*.kt"
 }
+
+apply from: "${project.rootDir}/gradle/publish/java-library-publish.gradle"

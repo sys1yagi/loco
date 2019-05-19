@@ -98,6 +98,10 @@ class InMemoryStore : Store {
 }
 ```
 
+# How to use for Android
+
+TODO
+
 # Classes
 
 ## LocoLog
@@ -121,10 +125,6 @@ TODO
 TODO
 
 ## SendingScheduler
-
-TODO
-
-## Sender
 
 TODO
 

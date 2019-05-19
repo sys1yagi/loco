@@ -1,6 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
+ext.moduleName = 'Loco Store with Anroid SQLite'
+
 android {
     compileSdkVersion 28
 
@@ -37,3 +39,5 @@ dependencies {
         exclude group: 'com.google.auto.value', module: 'auto-value-annotations'
     }
 }
+
+apply from: "${project.rootDir}/gradle/publish/android-library-publish.gradle"
