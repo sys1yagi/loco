@@ -29,6 +29,7 @@ dependencies {
     implementation project(':loco-core')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1'
+    api 'androidx.sqlite:sqlite-framework:2.0.1'
 
     androidTestImplementation("junit:junit:4.12")
     androidTestImplementation 'androidx.test:runner:1.1.1'

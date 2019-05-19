@@ -3,16 +3,26 @@ package com.sys1yagi.loco.store.android.sqlite.database
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
-import android.database.sqlite.SQLiteOpenHelper
+import android.database.sqlite.SQLiteDatabase.CONFLICT_ABORT
 import android.text.TextUtils
 import android.util.Log
+import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.db.SupportSQLiteOpenHelper
+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import com.sys1yagi.loco.core.internal.SmashedLog
 import com.sys1yagi.loco.store.android.sqlite.internal.ProcessName
 
-
 class LocoAndroidSqliteDatabase(context: Context) :
-    SQLiteOpenHelper(context, databaseName(context), null, DATABASE_VERSION) {
+    SupportSQLiteOpenHelper.Callback(DATABASE_VERSION) {
+
+    val openHelper = FrameworkSQLiteOpenHelperFactory()
+        .create(
+            SupportSQLiteOpenHelper.Configuration
+                .builder(context)
+                .name(databaseName(context))
+                .callback(this)
+                .build()
+        );
 
     companion object {
         private val DATABASE_NAME = "loco-android-sqlite.db"
@@ -41,7 +51,7 @@ class LocoAndroidSqliteDatabase(context: Context) :
         }
     }
 
-    override fun onCreate(db: SQLiteDatabase?) {
+    override fun onCreate(db: SupportSQLiteDatabase?) {
         val query = """
             CREATE TABLE IF NOT EXISTS $TABLE_NAME (
                 id INTEGER PRIMARY KEY,
@@ -55,7 +65,7 @@ class LocoAndroidSqliteDatabase(context: Context) :
         db?.execSQL(query)
     }
 
-    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+    override fun onUpgrade(db: SupportSQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         Log.e("LocoAndroidSqlite", "unexpected onUpgrade(db, $oldVersion, $newVersion)");
     }
 
@@ -67,7 +77,7 @@ class LocoAndroidSqliteDatabase(context: Context) :
         contentValues.put(COLUMN_NAME_SENDER_TYPE, log.senderTypeName)
         contentValues.put(COLUMN_NAME_SMASHED_LOG, log.smashedLog)
         contentValues.put(COLUMN_NAME_CREATED_AT, System.currentTimeMillis())
-        writableDatabase.insert(TABLE_NAME, null, contentValues)
+        openHelper.writableDatabase.insert(TABLE_NAME, CONFLICT_ABORT, contentValues)
     }
 
     fun select(size: Int): List<Record> {
@@ -76,7 +86,7 @@ class LocoAndroidSqliteDatabase(context: Context) :
                 ORDER BY $COLUMN_NAME_CREATED_AT ASC
                 LIMIT $size
         """.trimIndent()
-        readableDatabase.rawQuery(query, arrayOf()).use { cursor ->
+        openHelper.readableDatabase.query(query, arrayOf()).use { cursor ->
             return recordsFromCursor(cursor)
         }
     }
@@ -86,19 +96,19 @@ class LocoAndroidSqliteDatabase(context: Context) :
             DELETE FROM $TABLE_NAME
             WHERE id IN (${records.map { it.id }.joinToString(",")} )
         """.trimIndent()
-        writableDatabase.execSQL(query)
+        openHelper.writableDatabase.execSQL(query)
     }
 
     fun clear() {
         val query = """
             DELETE FROM $TABLE_NAME
         """.trimIndent()
-        writableDatabase.execSQL(query)
+        openHelper.writableDatabase.execSQL(query)
     }
 
     fun count(): Int {
         val query = "SELECT COUNT(*) FROM $TABLE_NAME"
-        readableDatabase.rawQuery(query, null).use { cursor ->
+        openHelper.readableDatabase.query(query, null).use { cursor ->
             return if (cursor.moveToNext()) {
                 cursor.getInt(0)
             } else {
@@ -127,6 +137,6 @@ class LocoAndroidSqliteDatabase(context: Context) :
     }
 
     protected fun finalize() {
-        close()
+        openHelper.close()
     }
 }
