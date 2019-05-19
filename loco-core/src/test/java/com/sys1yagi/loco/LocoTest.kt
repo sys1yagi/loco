@@ -37,7 +37,7 @@ class LocoTest {
         // it is sample code
         Loco.start(
             LocoConfig(
-                store = TestStore(),
+                store = InMemoryStore(),
                 smasher = GsonSmasher(Gson()),
                 senders = listOf(
                     StdOutSender()
@@ -73,7 +73,7 @@ class LocoTest {
     fun alreadyInitialized() {
         Loco.start(
             LocoConfig(
-                store = TestStore(),
+                store = InMemoryStore(),
                 smasher = GsonSmasher(Gson()),
                 senders = listOf(
                     StdOutSender()
@@ -102,7 +102,7 @@ class LocoTest {
         val smasher: Smasher = mockk(relaxed = true)
         Loco.start(
             LocoConfig(
-                store = TestStore(),
+                store = InMemoryStore(),
                 smasher = smasher,
                 senders = listOf(
                     StdOutSender()
@@ -126,7 +126,7 @@ class LocoTest {
         val sender: Sender = mockk(relaxed = true)
         Loco.start(
             LocoConfig(
-                store = TestStore(),
+                store = InMemoryStore(),
                 smasher = smasher,
                 senders = listOf(
                     sender
@@ -187,7 +187,7 @@ class LocoTest {
         val sender: Sender = mockk(relaxed = true) {
             coEvery { send(any()) } returns SendingResult.SUCCESS
         }
-        val store = TestStore()
+        val store = InMemoryStore()
         Loco.start(
             LocoConfig(
                 store = store,
@@ -226,7 +226,7 @@ class LocoTest {
         val sender: Sender = mockk(relaxed = true) {
             coEvery { send(any()) } returns SendingResult.FAILED
         }
-        val store = spyk(TestStore())
+        val store = spyk(InMemoryStore())
         Loco.start(
             LocoConfig(
                 store = store,
@@ -266,7 +266,7 @@ class LocoTest {
         val sender: Sender = mockk(relaxed = true) {
             coEvery { send(any()) } returns SendingResult.RETRY
         }
-        val store = spyk(TestStore())
+        val store = spyk(InMemoryStore())
         Loco.start(
             LocoConfig(
                 store = store,
@@ -308,7 +308,7 @@ class LocoTest {
         val sender: Sender = mockk(relaxed = true) {
             coEvery { send(any()) } returns SendingResult.SUCCESS
         }
-        val store = TestStore()
+        val store = InMemoryStore()
         Loco.start(
             LocoConfig(
                 store = store,
@@ -346,7 +346,7 @@ class LocoTest {
         val sender1: Sender = spyk(StdOutSender())
         val sender2: Sender = spyk(FileSender())
 
-        val store = TestStore()
+        val store = InMemoryStore()
         Loco.start(
             LocoConfig(
                 store = store,
@@ -434,7 +434,7 @@ class LocoTest {
         }
     }
 
-    class TestStore : Store {
+    class InMemoryStore : Store {
         val storage = mutableListOf<SmashedLog>()
         override suspend fun store(log: SmashedLog) {
             storage.add(log)
