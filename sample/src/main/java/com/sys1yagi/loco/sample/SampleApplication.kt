@@ -7,6 +7,7 @@ import com.sys1yagi.loco.core.*
 import com.sys1yagi.loco.core.internal.SmashedLog
 import com.sys1yagi.loco.sample.log.ClickLog
 import com.sys1yagi.loco.sample.log.ScreenLog
+import kotlinx.coroutines.delay
 
 class SampleApplication : Application() {
     override fun onCreate() {
@@ -17,7 +18,8 @@ class SampleApplication : Application() {
                 smasher = GsonSmasher(Gson()),
                 senders = listOf(
                     LogcatSender()
-                )
+                ),
+                scheduler = IntervalSendingScheduler(5000)
             ) {
                 logToSender[LogcatSender::class] = listOf(
                     ClickLog::class,
@@ -39,6 +41,17 @@ class SampleApplication : Application() {
                 Log.d("LogcatSender", it.smashedLog)
             }
             return SendingResult.SUCCESS
+        }
+    }
+
+    class IntervalSendingScheduler(private val interval: Long) : SendingScheduler {
+        override suspend fun schedule(
+            latestResults: List<Pair<Sender, SendingResult>>,
+            config: LocoConfig,
+            offer: () -> Unit
+        ) {
+            delay(interval)
+            offer()
         }
     }
 

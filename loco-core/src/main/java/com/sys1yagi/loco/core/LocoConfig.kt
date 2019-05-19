@@ -6,6 +6,7 @@ class LocoConfig(
     val store: Store,
     val smasher: Smasher,
     val senders: List<Sender>,
+    val scheduler: SendingScheduler,
     val sendingBulkSize: Int = 10,
     mapper: Mapper.() -> Unit
 ) {

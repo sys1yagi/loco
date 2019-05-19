@@ -5,12 +5,15 @@ import com.google.gson.Gson
 import com.sys1yagi.loco.core.*
 import com.sys1yagi.loco.core.internal.SmashedLog
 import io.mockk.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 
+@ExperimentalCoroutinesApi
 class LocoTest {
 
     @AfterEach
@@ -27,7 +30,8 @@ class LocoTest {
                 smasher = GsonSmasher(Gson()),
                 senders = listOf(
                     StdOutSender()
-                )
+                ),
+                scheduler = IntervalSendingScheduler(5000L)
             ) {
                 logToSender[StdOutSender::class] = listOf(
                     ClickLog::class
@@ -62,7 +66,8 @@ class LocoTest {
                 smasher = GsonSmasher(Gson()),
                 senders = listOf(
                     StdOutSender()
-                )
+                ),
+                scheduler = IntervalSendingScheduler(5000L)
             ) {
                 logToSender[StdOutSender::class] = listOf(
                     ClickLog::class
@@ -90,7 +95,8 @@ class LocoTest {
                 smasher = smasher,
                 senders = listOf(
                     StdOutSender()
-                )
+                ),
+                scheduler = IntervalSendingScheduler(5000L)
             ) {
                 logToSender[StdOutSender::class] = listOf(
                     ClickLog::class
@@ -113,7 +119,8 @@ class LocoTest {
                 smasher = smasher,
                 senders = listOf(
                     sender
-                )
+                ),
+                scheduler = IntervalSendingScheduler(5000L)
             ) {
 
             }
@@ -144,7 +151,8 @@ class LocoTest {
                 smasher = smasher,
                 senders = listOf(
                     sender
-                )
+                ),
+                scheduler = IntervalSendingScheduler(5000L)
             ) {
                 logToSender[sender::class] = listOf(ClickLog::class)
             },
@@ -176,7 +184,8 @@ class LocoTest {
                 smasher = smasher,
                 senders = listOf(
                     sender
-                )
+                ),
+                scheduler = IntervalSendingScheduler(5000L)
             ) {
                 logToSender[sender::class] = listOf(ClickLog::class)
             },
@@ -214,7 +223,8 @@ class LocoTest {
                 smasher = smasher,
                 senders = listOf(
                     sender
-                )
+                ),
+                scheduler = IntervalSendingScheduler(5000L)
             ) {
                 logToSender[sender::class] = listOf(ClickLog::class)
             },
@@ -253,7 +263,8 @@ class LocoTest {
                 smasher = smasher,
                 senders = listOf(
                     sender
-                )
+                ),
+                scheduler = IntervalSendingScheduler(5000L)
             ) {
                 logToSender[sender::class] = listOf(ClickLog::class)
             },
@@ -295,7 +306,8 @@ class LocoTest {
                 senders = listOf(
                     sender
                 ),
-                sendingBulkSize = 5
+                sendingBulkSize = 5,
+                scheduler = IntervalSendingScheduler(5000L)
             ) {
                 logToSender[sender::class] = listOf(ClickLog::class)
             },
@@ -337,6 +349,17 @@ class LocoTest {
                 println(it.toString())
             }
             return SendingResult.SUCCESS
+        }
+    }
+
+    class IntervalSendingScheduler(val interval: Long) : SendingScheduler {
+        override suspend fun schedule(
+            latestResults: List<Pair<Sender, SendingResult>>,
+            config: LocoConfig,
+            offer: () -> Unit
+        ) {
+            delay(interval)
+            offer()
         }
     }
 

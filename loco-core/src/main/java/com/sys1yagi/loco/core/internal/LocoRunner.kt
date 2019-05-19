@@ -21,6 +21,7 @@ class LocoRunner(val config: LocoConfig) {
 
     private var waitForNextSendingJob: Job? = null
 
+    @ObsoleteCoroutinesApi
     fun start(
         coroutineScope: CoroutineScope = GlobalScope
     ) {
@@ -62,26 +63,28 @@ class LocoRunner(val config: LocoConfig) {
 
     private suspend fun sending(scope: CoroutineScope, config: LocoConfig) {
         val logs = config.store.load(config.sendingBulkSize)
-        logs.groupBy { it.senderTypeName }.forEach { entry ->
+        val sendingResults = logs.groupBy { it.senderTypeName }.map { entry ->
             val senderTypeName = entry.key
             val senderTypedLogs = entry.value
             val sender = findSender(senderTypeName, config)
 
-            when (sender.send(senderTypedLogs)) {
+            when (val result = sender.send(senderTypedLogs)) {
                 SendingResult.SUCCESS, SendingResult.FAILED -> {
                     config.store.delete(senderTypedLogs)
+                    Pair(sender, result)
                 }
                 SendingResult.RETRY -> {
                     // no op
+                    Pair(sender, result)
                 }
             }
         }
 
         waitForNextSendingJob?.cancel()
         waitForNextSendingJob = scope.launch {
-            // TODO delay config
-            delay(5000)
-            channel?.offer(Event.Send(config))
+            config.scheduler.schedule(sendingResults, config) {
+                channel?.offer(Event.Send(config))
+            }
         }
     }
 
