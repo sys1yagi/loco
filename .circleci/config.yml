@@ -13,14 +13,14 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "loco-core/build.gradle" }}
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "loco-core/build.gradle" }}-{{ checksum  "loco-smasher-filterable-gson/build.gradle" }}-{{ checksum  "loco-store-android-sqlite/build.gradle" }}
       - run:
           name: Download Dependencies
           command: ./gradlew androidDependencies
       - save_cache:
           paths:
             - ~/.gradle
-          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "loco-core/build.gradle" }}
+          key: jars-{{ checksum "build.gradle" }}-{{ checksum  "loco-core/build.gradle" }}-{{ checksum  "loco-smasher-filterable-gson/build.gradle" }}-{{ checksum  "loco-store-android-sqlite/build.gradle" }}
       - run:
           name: Run KtLint
           #           why set gradle options? https://youtrack.jetbrains.com/issue/KT-17601
