@@ -347,20 +347,6 @@ class LocoTest {
         assertThat(store.storage.size).isEqualTo(95)
     }
 
-    @Test
-    fun filter() {
-        val smasher = FilterableGsonSmasher(Gson())
-        smasher.registerFilter(EventTimeFilter(mockk {
-            every { now() } returns 10
-        }))
-        val smashed = smasher.smash(ClickLog(1, "jack"))
-        assertThat(smashed).isEqualTo(
-            """
-            {"id":1,"name":"jack","event_time":10}
-        """.trimIndent()
-        )
-    }
-
     // TODO default sender
 
     // TODO multi sender
@@ -399,36 +385,4 @@ class LocoTest {
             storage.removeAll(logs)
         }
     }
-
-    interface JsonFilter {
-        fun filter(json: JsonObject): JsonObject
-    }
-
-    interface TimeProvider {
-        fun now(): Long
-    }
-
-    class EventTimeFilter(val timeProvider: TimeProvider) : JsonFilter {
-        override fun filter(json: JsonObject): JsonObject {
-            json.addProperty("event_time", timeProvider.now())
-            return json
-        }
-    }
-
-    class FilterableGsonSmasher(private val gson: Gson) : Smasher {
-        private val filters = mutableListOf<JsonFilter>()
-        override fun smash(log: LocoLog): String {
-            val jsonObject = gson.toJsonTree(log) as JsonObject
-            filters.forEach {
-                it.filter(jsonObject)
-            }
-            return jsonObject.toString()
-        }
-
-        fun registerFilter(filter: JsonFilter) {
-            filters.add(filter)
-        }
-    }
-
-
 }

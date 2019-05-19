@@ -34,13 +34,8 @@ class SampleApplication : Application() {
     }
 
     class GsonSmasher(val gson: Gson) : Smasher {
-        private val filters = mutableListOf<Filter>()
         override fun smash(log: LocoLog): String {
             return gson.toJson(log)
-        }
-
-        override fun registerFilter(filter: Filter) {
-            filters.add(filter)
         }
     }
 

@@ -4,7 +4,6 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion 28
 
-
     defaultConfig {
         applicationId "com.sys1yagi.loco.sample"
         minSdkVersion 22
@@ -22,11 +21,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
-    implementation project(":loco_android")
+    implementation project(':core')
+    implementation project(':loco-smasher-filterable-gson')
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.2.1'
