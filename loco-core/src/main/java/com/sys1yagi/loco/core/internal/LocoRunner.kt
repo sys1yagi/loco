@@ -48,6 +48,7 @@ class LocoRunner(val config: LocoConfig) {
     }
 
     fun stop() {
+        channel?.close()
         mainJob?.cancel()
         mainJob = null
     }
