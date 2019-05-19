@@ -26,9 +26,7 @@ allprojects {
         jcenter()
 
         // todo publish to jc
-        maven {
-            url "https://dl.bintray.com/sys1yagi/maven"
-        }
+        maven { url "https://dl.bintray.com/sys1yagi/maven" }
     }
 }
 

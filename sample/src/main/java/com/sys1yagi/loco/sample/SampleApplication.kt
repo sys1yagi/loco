@@ -3,10 +3,15 @@ package com.sys1yagi.loco.sample
 import android.app.Application
 import android.util.Log
 import com.google.gson.Gson
-import com.sys1yagi.loco.core.*
+import com.sys1yagi.loco.core.Loco
+import com.sys1yagi.loco.core.LocoConfig
+import com.sys1yagi.loco.core.Sender
+import com.sys1yagi.loco.core.SendingResult
+import com.sys1yagi.loco.core.SendingScheduler
 import com.sys1yagi.loco.core.internal.SmashedLog
 import com.sys1yagi.loco.sample.log.ClickLog
 import com.sys1yagi.loco.sample.log.ScreenLog
+import com.sys1yagi.loco.smasher.FilterableGsonSmasher
 import com.sys1yagi.loco.store.android.sqlite.LocoAndroidSqliteStore
 import kotlinx.coroutines.delay
 
@@ -15,9 +20,8 @@ class SampleApplication : Application() {
         super.onCreate()
         Loco.start(
             LocoConfig(
-                // store = InMemoryStore(),
                 store = LocoAndroidSqliteStore(this),
-                smasher = GsonSmasher(Gson()),
+                smasher = FilterableGsonSmasher(Gson()),
                 senders = listOf(
                     LogcatSender()
                 ),
@@ -29,12 +33,6 @@ class SampleApplication : Application() {
                 )
             }
         )
-    }
-
-    class GsonSmasher(val gson: Gson) : Smasher {
-        override fun smash(log: LocoLog): String {
-            return gson.toJson(log)
-        }
     }
 
     class LogcatSender : Sender {
@@ -54,21 +52,6 @@ class SampleApplication : Application() {
         ) {
             delay(interval)
             offer()
-        }
-    }
-
-    class InMemoryStore : Store {
-        val storage = mutableListOf<SmashedLog>()
-        override suspend fun store(log: SmashedLog) {
-            storage.add(log)
-        }
-
-        override suspend fun load(size: Int): List<SmashedLog> {
-            return storage.take(size)
-        }
-
-        override suspend fun delete(logs: List<SmashedLog>) {
-            storage.removeAll(logs)
         }
     }
 }
