@@ -22,6 +22,10 @@ jobs:
             - ~/.gradle
           key: jars-{{ checksum "build.gradle" }}-{{ checksum  "app/build.gradle" }}
       - run:
+          name: Run KtLint
+          #           why set gradle options? https://youtrack.jetbrains.com/issue/KT-17601
+          command: ./gradlew ktlint --no-daemon -Dkotlin.compiler.execution.strategy=in-process -PdisablePreDex --stacktrace
+      - run:
           name: Run Test
           no_output_timeout: 30m
           #           why set gradle options? https://youtrack.jetbrains.com/issue/KT-17601
