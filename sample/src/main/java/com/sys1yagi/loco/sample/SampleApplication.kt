@@ -7,6 +7,7 @@ import com.sys1yagi.loco.core.*
 import com.sys1yagi.loco.core.internal.SmashedLog
 import com.sys1yagi.loco.sample.log.ClickLog
 import com.sys1yagi.loco.sample.log.ScreenLog
+import com.sys1yagi.loco.store.android.sqlite.LocoAndroidSqliteStore
 import kotlinx.coroutines.delay
 
 class SampleApplication : Application() {
@@ -14,7 +15,8 @@ class SampleApplication : Application() {
         super.onCreate()
         Loco.start(
             LocoConfig(
-                store = InMemoryStore(),
+                // store = InMemoryStore(),
+                store = LocoAndroidSqliteStore(this),
                 smasher = GsonSmasher(Gson()),
                 senders = listOf(
                     LogcatSender()

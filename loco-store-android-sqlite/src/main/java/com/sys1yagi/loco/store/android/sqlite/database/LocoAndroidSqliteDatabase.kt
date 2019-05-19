@@ -27,6 +27,8 @@ class LocoAndroidSqliteDatabase(context: Context) :
 
         private val COLUMN_NAME_SMASHED_LOG = "smashed_log"
 
+        private val COLUMN_NAME_CREATED_AT = "created_at"
+
         private val DATABASE_VERSION = 1
 
         fun databaseName(context: Context): String {
@@ -46,7 +48,8 @@ class LocoAndroidSqliteDatabase(context: Context) :
                 $COLUMN_NAME_LOG_TYPE TEXT,
                 $COLUMN_NAME_SMASHER_TYPE TEXT,
                 $COLUMN_NAME_SENDER_TYPE TEXT,
-                $COLUMN_NAME_SMASHED_LOG TEXT
+                $COLUMN_NAME_SMASHED_LOG TEXT,
+                $COLUMN_NAME_CREATED_AT INTEGER
             );
         """.trimIndent()
         db?.execSQL(query)
@@ -63,13 +66,14 @@ class LocoAndroidSqliteDatabase(context: Context) :
         contentValues.put(COLUMN_NAME_SMASHER_TYPE, log.smasherTypeName)
         contentValues.put(COLUMN_NAME_SENDER_TYPE, log.senderTypeName)
         contentValues.put(COLUMN_NAME_SMASHED_LOG, log.smashedLog)
+        contentValues.put(COLUMN_NAME_CREATED_AT, System.currentTimeMillis())
         writableDatabase.insert(TABLE_NAME, null, contentValues)
     }
 
     fun select(size: Int): List<Record> {
         val query = """
             SELECT * FROM $TABLE_NAME
-                ORDER BY id ASC
+                ORDER BY $COLUMN_NAME_CREATED_AT ASC
                 LIMIT $size
         """.trimIndent()
         readableDatabase.rawQuery(query, arrayOf()).use { cursor ->
