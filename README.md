@@ -48,16 +48,16 @@ fun startLoco() {
       store = InMemoryStore(), // persistent layer for buffering logs.
       smasher = GsonSmasher(Gson()), // serializer for logs.
       senders = listOf(
-      StdOutSender() // log senders
-    ),
-    scheduler = IntervalSendingScheduler(5000L), // sending interval scheduler
-    sendingBulkSize = 20
-  ) {
-    // mapping logs to sender
-    logToSender[StdOutSender::class] = listOf(
-      ClickLog::class
-    )
-  }
+        StdOutSender() // log senders
+      ),
+      scheduler = IntervalSendingScheduler(5000L), // sending interval scheduler
+      sendingBulkSize = 20
+    ) {
+      // mapping logs to sender
+      logToSender[StdOutSender::class] = listOf(
+        ClickLog::class
+      )
+    }
   )
 
   // send logs anytime, anywhere

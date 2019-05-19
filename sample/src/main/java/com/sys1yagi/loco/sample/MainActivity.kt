@@ -15,7 +15,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Loco.send(ScreenLog(MainActivity::class.java.simpleName))
+        Loco.send(ScreenLog(this::class.java.simpleName))
         setContentView(R.layout.activity_main)
 
         var i = 0
