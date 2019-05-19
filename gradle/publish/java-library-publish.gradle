@@ -25,7 +25,7 @@ bintray {
         issueTrackerUrl = 'https://github.com/sys1yagi/loco/issues'
         vcsUrl = GIT_URL
         licenses = ['MIT']
-        labels = ['aar', 'android', 'kotlin', 'logging']
+        labels = ['android', 'kotlin', 'logging']
         publicDownloadNumbers = true
         githubRepo = 'sys1yagi/loco'
     }

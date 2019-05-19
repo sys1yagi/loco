@@ -41,7 +41,6 @@ internal class FilterableGsonSmasherTest {
     fun registerFilter() {
     }
 
-
     interface TimeProvider {
         fun now(): Long
     }
@@ -57,5 +56,4 @@ internal class FilterableGsonSmasherTest {
         val id: Int,
         val name: String
     ) : LocoLog
-
 }
