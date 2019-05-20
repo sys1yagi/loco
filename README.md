@@ -9,16 +9,6 @@ loco (Log Coroutine) is a logging library using coroutine for Android.
 
 # Install
 
-Loco is not yet published to jcenter. You should add bintray url to root build.gradle like below.
-
-```groovy
-allprojects {
-  repositories {
-    maven { url "https://dl.bintray.com/sys1yagi/maven" }
-  }
-}
-```
-
 Add your necessary module.
 
 ```groovy
