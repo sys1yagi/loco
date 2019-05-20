@@ -2,21 +2,9 @@ package com.sys1yagi.loco
 
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
-import com.sys1yagi.loco.core.Internist
-import com.sys1yagi.loco.core.Loco
-import com.sys1yagi.loco.core.LocoConfig
-import com.sys1yagi.loco.core.LocoLog
-import com.sys1yagi.loco.core.Sender
-import com.sys1yagi.loco.core.SendingResult
-import com.sys1yagi.loco.core.SendingScheduler
-import com.sys1yagi.loco.core.Smasher
-import com.sys1yagi.loco.core.Store
+import com.sys1yagi.loco.core.*
 import com.sys1yagi.loco.core.internal.SmashedLog
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.mockk
-import io.mockk.spyk
-import io.mockk.verify
+import io.mockk.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runBlockingTest
@@ -39,15 +27,13 @@ class LocoTest {
             LocoConfig(
                 store = InMemoryStore(),
                 smasher = GsonSmasher(Gson()),
-                senders = listOf(
-                    StdOutSender()
+                senders = mapOf(
+                    StdOutSender() to listOf(
+                        ClickLog::class
+                    )
                 ),
                 scheduler = IntervalSendingScheduler(5000L)
-            ) {
-                logToSender[StdOutSender::class] = listOf(
-                    ClickLog::class
-                )
-            }
+            )
         )
         Loco.send(
             ClickLog(1, "jack")
@@ -75,15 +61,13 @@ class LocoTest {
             LocoConfig(
                 store = InMemoryStore(),
                 smasher = GsonSmasher(Gson()),
-                senders = listOf(
-                    StdOutSender()
+                senders = mapOf(
+                    StdOutSender() to listOf(
+                        ClickLog::class
+                    )
                 ),
                 scheduler = IntervalSendingScheduler(5000L)
-            ) {
-                logToSender[StdOutSender::class] = listOf(
-                    ClickLog::class
-                )
-            }
+            )
         )
         val error = assertThrows<IllegalStateException>("error") {
             Loco.start(
@@ -104,15 +88,13 @@ class LocoTest {
             LocoConfig(
                 store = InMemoryStore(),
                 smasher = smasher,
-                senders = listOf(
-                    StdOutSender()
+                senders = mapOf(
+                    StdOutSender() to listOf(
+                        ClickLog::class
+                    )
                 ),
                 scheduler = IntervalSendingScheduler(5000L)
-            ) {
-                logToSender[StdOutSender::class] = listOf(
-                    ClickLog::class
-                )
-            }
+            )
         )
         Loco.send(
             ClickLog(1, "jack")
@@ -128,12 +110,11 @@ class LocoTest {
             LocoConfig(
                 store = InMemoryStore(),
                 smasher = smasher,
-                senders = listOf(
-                    sender
+                senders = mapOf(
+                    sender to emptyList()
                 ),
                 scheduler = IntervalSendingScheduler(5000L)
-            ) {
-            }
+            )
         )
         val error = assertThrows<IllegalStateException>("error") {
             Loco.send(
@@ -159,13 +140,11 @@ class LocoTest {
             LocoConfig(
                 store = store,
                 smasher = smasher,
-                senders = listOf(
-                    sender
+                senders = mapOf(
+                    sender to listOf(ClickLog::class)
                 ),
                 scheduler = IntervalSendingScheduler(5000L)
-            ) {
-                logToSender[sender::class] = listOf(ClickLog::class)
-            },
+            ),
             this
         )
         Loco.send(
@@ -192,13 +171,11 @@ class LocoTest {
             LocoConfig(
                 store = store,
                 smasher = smasher,
-                senders = listOf(
-                    sender
+                senders = mapOf(
+                    sender to listOf(ClickLog::class)
                 ),
                 scheduler = IntervalSendingScheduler(5000L)
-            ) {
-                logToSender[sender::class] = listOf(ClickLog::class)
-            },
+            ),
             this
         )
         Loco.send(
@@ -231,13 +208,11 @@ class LocoTest {
             LocoConfig(
                 store = store,
                 smasher = smasher,
-                senders = listOf(
-                    sender
+                senders = mapOf(
+                    sender to listOf(ClickLog::class)
                 ),
                 scheduler = IntervalSendingScheduler(5000L)
-            ) {
-                logToSender[sender::class] = listOf(ClickLog::class)
-            },
+            ),
             this
         )
         Loco.send(
@@ -271,13 +246,11 @@ class LocoTest {
             LocoConfig(
                 store = store,
                 smasher = smasher,
-                senders = listOf(
-                    sender
+                senders = mapOf(
+                    sender to listOf(ClickLog::class)
                 ),
                 scheduler = IntervalSendingScheduler(5000L)
-            ) {
-                logToSender[sender::class] = listOf(ClickLog::class)
-            },
+            ),
             this
         )
         Loco.send(
@@ -313,14 +286,14 @@ class LocoTest {
             LocoConfig(
                 store = store,
                 smasher = smasher,
-                senders = listOf(
-                    sender
+                senders = mapOf(
+                    sender to listOf(ClickLog::class)
                 ),
-                sendingBulkSize = 5,
-                scheduler = IntervalSendingScheduler(5000L)
-            ) {
-                logToSender[sender::class] = listOf(ClickLog::class)
-            },
+                scheduler = IntervalSendingScheduler(5000L),
+                extra = LocoConfig.Extra(
+                    sendingBulkSize = 5
+                )
+            ),
             this
         )
         repeat(0.until(100).count()) {
@@ -351,35 +324,38 @@ class LocoTest {
             LocoConfig(
                 store = store,
                 smasher = smasher,
-                senders = listOf(
-                    sender1, sender2
+                senders = mapOf(
+                    sender1 to listOf(ClickLog::class),
+                    sender2 to listOf(ClickLog::class)
                 ),
                 scheduler = IntervalSendingScheduler(5000L),
-                internist = object : Internist {
-                    override fun onSend(locoLog: LocoLog, config: LocoConfig) {
-                        // no op
-                    }
+                extra = LocoConfig.Extra(
+                    internist = object : Internist {
+                        override fun onSend(locoLog: LocoLog, config: LocoConfig) {
+                            // no op
+                        }
 
-                    override fun onStore(log: SmashedLog, config: LocoConfig) {
-                        // no op
-                    }
+                        override fun onStore(log: SmashedLog, config: LocoConfig) {
+                            // no op
+                        }
 
-                    override fun onStartSending() {
-                        println("onStartSending")
-                    }
+                        override fun onStartSending() {
+                            println("onStartSending")
+                        }
 
-                    override fun onSending(sender: Sender, logs: List<SmashedLog>, config: LocoConfig) {
-                        println("onSending: $sender, ${logs.size}")
-                    }
+                        override fun onSending(sender: Sender, logs: List<SmashedLog>, config: LocoConfig) {
+                            println("onSending: $sender, ${logs.size}")
+                        }
 
-                    override fun onEndSending(sendingResults: List<Pair<Sender, SendingResult>>, config: LocoConfig) {
-                        println("onStartSending")
+                        override fun onEndSending(
+                            sendingResults: List<Pair<Sender, SendingResult>>,
+                            config: LocoConfig
+                        ) {
+                            println("onStartSending")
+                        }
                     }
-                }
-            ) {
-                logToSender[StdOutSender::class] = listOf(ClickLog::class)
-                logToSender[FileSender::class] = listOf(ClickLog::class)
-            },
+                )
+            ),
             this
         )
 
