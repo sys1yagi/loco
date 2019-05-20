@@ -5,18 +5,13 @@ import kotlin.reflect.KClass
 class LocoConfig(
     val store: Store,
     val smasher: Smasher,
-    val senders: List<Sender>,
+    val senders: Map<Sender, List<KClass<out LocoLog>>>,
     val scheduler: SendingScheduler,
-    val sendingBulkSize: Int = 10,
-    val internist: Internist? = null,
-    mapper: Mapper.() -> Unit
+    val extra: Extra = Extra()
 ) {
-    val mapping = Mapper().apply {
-        mapper()
-    }
-
-    class Mapper {
-        val logToSender = hashMapOf<KClass<out Sender>, List<KClass<out LocoLog>>>()
-        var defaultSender: Sender? = null // TODO
-    }
+    data class Extra(
+        val defaultSender: Sender? = null,
+        val sendingBulkSize: Int = 10,
+        val internist: Internist? = null
+    )
 }

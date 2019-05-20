@@ -11,7 +11,6 @@ import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
-import kotlin.reflect.KClass
 
 class LocoRunner(val config: LocoConfig) {
     sealed class Event {
@@ -54,16 +53,16 @@ class LocoRunner(val config: LocoConfig) {
     }
 
     fun send(log: LocoLog) {
-        config.internist?.onSend(log, config)
+        config.extra.internist?.onSend(log, config)
 
         val smasher = config.smasher
-        val senderTypes = findSenderTypeWithLocoLog(log, config)
+        val senders = findSenderTypeWithLocoLog(log, config)
         val smashed = smasher.smash(log)
-        senderTypes.forEach { senderType ->
+        senders.forEach { sender ->
             val smashedLog = SmashedLog(
                 log::class.java.name,
                 smasher::class.java.name,
-                senderType.java.name,
+                sender::class.java.name,
                 smashed
             )
             channel?.offer(Event.Store(smashedLog))
@@ -71,21 +70,21 @@ class LocoRunner(val config: LocoConfig) {
     }
 
     private suspend fun store(log: SmashedLog, config: LocoConfig) {
-        config.internist?.onStore(log, config)
+        config.extra.internist?.onStore(log, config)
 
         config.store.store(log)
     }
 
     private suspend fun sending(scope: CoroutineScope, config: LocoConfig) {
-        config.internist?.onStartSending()
+        config.extra.internist?.onStartSending()
 
-        val logs = config.store.load(config.sendingBulkSize)
+        val logs = config.store.load(config.extra.sendingBulkSize)
         val sendingResults = logs.groupBy { it.senderTypeName }.map { entry ->
             val senderTypeName = entry.key
             val senderTypedLogs = entry.value
             val sender = findSender(senderTypeName, config)
 
-            config.internist?.onSending(sender, senderTypedLogs, config)
+            config.extra.internist?.onSending(sender, senderTypedLogs, config)
 
             when (val result = sender.send(senderTypedLogs)) {
                 SendingResult.SUCCESS, SendingResult.FAILED -> {
@@ -99,7 +98,7 @@ class LocoRunner(val config: LocoConfig) {
             }
         }
 
-        config.internist?.onEndSending(sendingResults, config)
+        config.extra.internist?.onEndSending(sendingResults, config)
 
         waitForNextSendingJob?.cancel()
         waitForNextSendingJob = scope.launch {
@@ -111,7 +110,7 @@ class LocoRunner(val config: LocoConfig) {
 
     private fun findSender(senderTypeName: String, config: LocoConfig): Sender {
         val senderType = Class.forName(senderTypeName)::kotlin.get()
-        return config.senders.find {
+        return config.senders.keys.find {
             it::class.java == senderType.java
         } ?: throw IllegalStateException(
             """
@@ -121,8 +120,8 @@ class LocoRunner(val config: LocoConfig) {
         )
     }
 
-    private fun findSenderTypeWithLocoLog(log: LocoLog, config: LocoConfig): List<KClass<out Sender>> {
-        val klasses = config.mapping.logToSender.entries.filter { map ->
+    private fun findSenderTypeWithLocoLog(log: LocoLog, config: LocoConfig): List<Sender> {
+        val klasses = config.senders.entries.filter { map ->
             map.value.any { it == log::class }
         }.map { it.key }
         if (klasses.isEmpty()) {
@@ -134,17 +133,6 @@ class LocoRunner(val config: LocoConfig) {
             )
         }
         return klasses
-    }
-
-    private fun findSenderTypeWithKClass(klass: KClass<out LocoLog>, config: LocoConfig): KClass<out Sender> {
-        return config.mapping.logToSender.entries.find { map ->
-            map.value.any { it == klass }
-        }?.key ?: throw IllegalStateException(
-            """
-                    Missing mapping to Sender Type.
-                    Set up the mapping of ${klass::class.java.name} class.
-                    """.trimIndent()
-        )
     }
 
     private fun requireNotInitialized() {
