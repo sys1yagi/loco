@@ -24,7 +24,7 @@ Add your necessary module.
 ```groovy
 dependencies {
   // core
-  implementation 'com.sys1yagi.loco:loco-core:1.0.0'
+  implementation 'com.sys1yagi.loco:loco-core:1.0.1'
   
   // optional, use Gson to serialize the log, and you can use filters to process the logs.
   implementation 'com.sys1yagi.loco:loco-smasher-filterable-gson:1.0.0'
@@ -120,7 +120,7 @@ There are some useful modules for Android.
 ```groovy
 dependencies {
   // core
-  implementation 'com.sys1yagi.loco:loco-core:1.0.0'
+  implementation 'com.sys1yagi.loco:loco-core:1.0.1'
   
   // use Gson to serialize the log, and you can use filters to process the logs.
   implementation 'com.sys1yagi.loco:loco-smasher-filterable-gson:1.0.0'

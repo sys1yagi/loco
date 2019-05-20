@@ -24,7 +24,7 @@ android {
 }
 
 dependencies {
-    implementation 'com.sys1yagi.loco:loco-core:1.0.0'
+    implementation 'com.sys1yagi.loco:loco-core:1.0.1'
     implementation 'com.sys1yagi.loco:loco-smasher-filterable-gson:1.0.0'
     implementation 'com.sys1yagi.loco:loco-store-android-sqlite:1.0.0'
 
