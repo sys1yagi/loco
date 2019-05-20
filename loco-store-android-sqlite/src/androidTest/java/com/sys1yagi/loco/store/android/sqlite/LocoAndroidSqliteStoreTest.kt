@@ -2,6 +2,7 @@ package com.sys1yagi.loco.store.android.sqlite
 
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.common.truth.Truth.assertThat
 import com.sys1yagi.loco.core.internal.SmashedLog
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -9,7 +10,9 @@ import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 
+@RunWith(AndroidJUnit4::class)
 class LocoAndroidSqliteStoreTest {
 
     lateinit var store: LocoAndroidSqliteStore

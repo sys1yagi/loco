@@ -34,8 +34,16 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1'
     api 'androidx.sqlite:sqlite-framework:2.0.1'
 
+    testImplementation("junit:junit:4.12")
+    testImplementation 'androidx.test:runner:1.1.1'
+    testImplementation 'androidx.test.ext:junit:1.1.0'
+    testImplementation('androidx.test.ext:truth:1.1.0') {
+        exclude group: 'com.google.auto.value', module: 'auto-value-annotations'
+    }
+
     androidTestImplementation("junit:junit:4.12")
     androidTestImplementation 'androidx.test:runner:1.1.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation('androidx.test.ext:truth:1.1.0') {
         exclude group: 'com.google.auto.value', module: 'auto-value-annotations'
     }
