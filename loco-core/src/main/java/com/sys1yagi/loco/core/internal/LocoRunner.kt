@@ -65,6 +65,7 @@ class LocoRunner(val config: LocoConfig) {
                 sender::class.java.name,
                 smashed
             )
+            config.extra.internist?.onStoreOffer(smashedLog, config)
             channel?.offer(Event.Store(smashedLog))
         }
     }
@@ -112,27 +113,34 @@ class LocoRunner(val config: LocoConfig) {
         val senderType = Class.forName(senderTypeName)::kotlin.get()
         return config.senders.keys.find {
             it::class.java == senderType.java
-        } ?: throw IllegalStateException(
-            """
+        } ?: run {
+            config.extra.defaultSender?.let {
+                return it
+            }
+            throw IllegalStateException(
+                """
                     Missing Sender.
                     Add ${senderType.java.name} to LocoConfig#senders.
                     """.trimIndent()
-        )
+            )
+        }
     }
 
     private fun findSenderTypeWithLocoLog(log: LocoLog, config: LocoConfig): List<Sender> {
-        val klasses = config.senders.entries.filter { map ->
+        val senders = config.senders.entries.filter { map ->
             map.value.any { it == log::class }
         }.map { it.key }
-        if (klasses.isEmpty()) {
-            throw IllegalStateException(
+        if (senders.isEmpty()) {
+            config.extra.defaultSender?.let {
+                return listOf(it)
+            } ?: throw IllegalStateException(
                 """
                     Missing mapping to Sender Type.
                     Set up the mapping of ${log::class.java.name} class.
                     """.trimIndent()
             )
         }
-        return klasses
+        return senders
     }
 
     private fun requireNotInitialized() {
