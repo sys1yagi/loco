@@ -22,16 +22,14 @@ class SampleApplication : Application() {
             LocoConfig(
                 store = LocoAndroidSqliteStore(this),
                 smasher = FilterableGsonSmasher(Gson()),
-                senders = listOf(
-                    LogcatSender()
+                senders = mapOf(
+                    LogcatSender() to listOf(
+                        ClickLog::class,
+                        ScreenLog::class
+                    )
                 ),
                 scheduler = IntervalSendingScheduler(5000)
-            ) {
-                logToSender[LogcatSender::class] = listOf(
-                    ClickLog::class,
-                    ScreenLog::class
-                )
-            }
+            )
         )
     }
 

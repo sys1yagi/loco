@@ -14,7 +14,7 @@ Add your necessary module.
 ```groovy
 dependencies {
   // core
-  implementation 'com.sys1yagi.loco:loco-core:1.0.1'
+  implementation 'com.sys1yagi.loco:loco-core:1.1.0'
   
   // optional, use Gson to serialize the log, and you can use filters to process the logs.
   implementation 'com.sys1yagi.loco:loco-smasher-filterable-gson:1.0.0'
@@ -37,17 +37,14 @@ fun startLoco() {
     LocoConfig(
       store = InMemoryStore(), // persistent layer for buffering logs.
       smasher = GsonSmasher(Gson()), // serializer for logs.
-      senders = listOf(
-        StdOutSender() // log senders
+      senders = mapOf(
+        // log senders and mapping
+        StdOutSender() to listOf(
+          ClickLog::class
+        )
       ),
-      scheduler = IntervalSendingScheduler(5000L), // sending interval scheduler
-      sendingBulkSize = 20
-    ) {
-      // mapping logs to sender
-      logToSender[StdOutSender::class] = listOf(
-        ClickLog::class
-      )
-    }
+      scheduler = IntervalSendingScheduler(5000L) // sending interval scheduler
+    )
   )
 
   // send logs anytime, anywhere
@@ -131,9 +128,7 @@ class SampleApplication : Application() {
         smasher = FilterableGsonSmasher(Gson()), // loco-smasher-filterable-gson
         senders = // ...
         scheduler = // ...
-      ) {
-        // ...
-      }
+      )
     )
   }
 }
@@ -141,28 +136,7 @@ class SampleApplication : Application() {
 
 See more [sample](https://github.com/sys1yagi/loco/tree/master/sample)
 
-## Sender Mapping
-
-You should mapping for logs and sender.
-
-
-```kotlin
-Loco.start(
-  LocoConfig(
-    store = // ..., 
-    smasher = // ..., 
-    senders = listOf(
-      NetworkSender()
-    ),
-    scheduler = // ..., 
-  ) {
-    logToSender[NetworkSender::class] = listOf(
-      ClickLog::class,
-      ScreenLog::class
-    )
-  }
-)
-```
+## Multi Sender
 
 You can configure multiple Senders.
 
@@ -171,20 +145,17 @@ Loco.start(
   LocoConfig(
     store = // ..., 
     smasher = // ..., 
-    senders = listOf(
-      NetworkSender(),
-      LogcatSender()
+    senders = mapOf(
+      NetworkSender() to listOf(
+        ClickLog::class,
+        ScreenLog::class
+      ),
+      LogcatSender() to listOf(
+        ScreenLog::class
+      )
     ),
     scheduler = // ..., 
-  ) {
-    logToSender[NetworkSender::class] = listOf(
-      ClickLog::class,
-      ScreenLog::class
-    )
-    logToSender[LogcatSender::class] = listOf(
-      ScreenLog::class
-    )
-  }
+  )
 )
 ```
 
@@ -303,7 +274,19 @@ class IntervalSendingScheduler(val interval: Long) : SendingScheduler {
 }
 ```
 
-## Internist
+## LocoConfig.Extra
+
+TODO
+
+## defaultSender
+
+TODO
+
+## sendingBulkSize
+
+TODO
+
+### Internist
 
 What's happening in Loco?
 You can make an internist intrude.
@@ -316,30 +299,30 @@ Loco.start(
     smasher = //... ,
     senders = //... ,
     scheduler = //... ,
-    internist = object : Internist {
-      override fun onSend(locoLog: LocoLog, config: LocoConfig) {
-        println("onSend")
-      }
+    LocoConfig.Extra(
+      internist = object : Internist {
+        override fun onSend(locoLog: LocoLog, config: LocoConfig) {
+          println("onSend")
+        }
 
-      override fun onStore(log: SmashedLog, config: LocoConfig) {
-        println("onStore")
-      }
+        override fun onStore(log: SmashedLog, config: LocoConfig) {
+          println("onStore")
+        }
 
-      override fun onStartSending() {
-        println("onStartSending")
-      }
+        override fun onStartSending() {
+          println("onStartSending")
+        }
 
-      override fun onSending(sender: Sender, logs: List<SmashedLog>, config: LocoConfig) {
-        println("onSending: $sender, ${logs.size}")
-      }
+        override fun onSending(sender: Sender, logs: List<SmashedLog>, config: LocoConfig) {
+          println("onSending: $sender, ${logs.size}")
+        }
 
-      override fun onEndSending(sendingResults: List<Pair<Sender, SendingResult>>, config: LocoConfig) {
-        println("onStartSending")
+        override fun onEndSending(sendingResults: List<Pair<Sender, SendingResult>>, config: LocoConfig) {
+          println("onStartSending")
+        }
       }
-    }
-  ) {
-    //...
-  }
+    )
+  )
 )
 ```
 
