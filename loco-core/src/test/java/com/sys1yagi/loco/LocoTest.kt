@@ -468,6 +468,5 @@ class LocoTest {
         ) {
             println("onEndSending : ${Thread.currentThread().id}")
         }
-
     }
 }
