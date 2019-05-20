@@ -1,6 +1,7 @@
 apply plugin: 'java-library'
 apply plugin: 'kotlin'
 
+ext.versionName = '1.0.0'
 ext.moduleName = "Log Smasher usign Gson"
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
