@@ -4,9 +4,13 @@ import com.sys1yagi.loco.core.LocoConfig
 import com.sys1yagi.loco.core.LocoLog
 import com.sys1yagi.loco.core.Sender
 import com.sys1yagi.loco.core.SendingResult
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 
 class LocoRunner(val config: LocoConfig) {
     sealed class Event {

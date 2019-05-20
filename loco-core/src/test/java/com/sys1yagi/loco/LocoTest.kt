@@ -2,9 +2,21 @@ package com.sys1yagi.loco
 
 import com.google.common.truth.Truth.assertThat
 import com.google.gson.Gson
-import com.sys1yagi.loco.core.*
+import com.sys1yagi.loco.core.Internist
+import com.sys1yagi.loco.core.Loco
+import com.sys1yagi.loco.core.LocoConfig
+import com.sys1yagi.loco.core.LocoLog
+import com.sys1yagi.loco.core.Sender
+import com.sys1yagi.loco.core.SendingResult
+import com.sys1yagi.loco.core.SendingScheduler
+import com.sys1yagi.loco.core.Smasher
+import com.sys1yagi.loco.core.Store
 import com.sys1yagi.loco.core.internal.SmashedLog
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runBlockingTest
