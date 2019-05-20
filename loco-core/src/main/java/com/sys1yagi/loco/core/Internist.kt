@@ -4,6 +4,7 @@ import com.sys1yagi.loco.core.internal.SmashedLog
 
 interface Internist {
     fun onSend(locoLog: LocoLog, config: LocoConfig)
+    fun onStoreOffer(log: SmashedLog, config: LocoConfig)
     fun onStore(log: SmashedLog, config: LocoConfig)
     fun onStartSending()
     fun onSending(sender: Sender, logs: List<SmashedLog>, config: LocoConfig)

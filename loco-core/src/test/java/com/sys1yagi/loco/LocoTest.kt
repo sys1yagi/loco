@@ -323,7 +323,34 @@ class LocoTest {
         assertThat(store.storage.size).isEqualTo(95)
     }
 
-    // TODO default sender
+    @Test
+    fun defaultSender() = runBlockingTest {
+        val smasher: Smasher = mockk(relaxed = true)
+        val sender: Sender = spyk(StdOutSender())
+
+        Loco.start(
+            LocoConfig(
+                store = InMemoryStore(),
+                smasher = smasher,
+                senders = mapOf(),
+                scheduler = IntervalSendingScheduler(5000L),
+                extra = LocoConfig.Extra(
+                    defaultSender = sender,
+                    internist = PrintInternist()
+                )
+            ),
+            this
+        )
+        Loco.send(
+            ClickLog(1, "jack")
+        )
+
+        advanceTimeBy(6000)
+
+        Loco.stop()
+
+        coVerify { sender.send(any()) }
+    }
 
     @Test
     fun multiSender() = runBlockingTest {
@@ -342,30 +369,7 @@ class LocoTest {
                 ),
                 scheduler = IntervalSendingScheduler(5000L),
                 extra = LocoConfig.Extra(
-                    internist = object : Internist {
-                        override fun onSend(locoLog: LocoLog, config: LocoConfig) {
-                            // no op
-                        }
-
-                        override fun onStore(log: SmashedLog, config: LocoConfig) {
-                            // no op
-                        }
-
-                        override fun onStartSending() {
-                            println("onStartSending")
-                        }
-
-                        override fun onSending(sender: Sender, logs: List<SmashedLog>, config: LocoConfig) {
-                            println("onSending: $sender, ${logs.size}")
-                        }
-
-                        override fun onEndSending(
-                            sendingResults: List<Pair<Sender, SendingResult>>,
-                            config: LocoConfig
-                        ) {
-                            println("onStartSending")
-                        }
-                    }
+                    internist = PrintInternist()
                 )
             ),
             this
@@ -411,7 +415,7 @@ class LocoTest {
         }
     }
 
-    class IntervalSendingScheduler(val interval: Long) : SendingScheduler {
+    class IntervalSendingScheduler(private val interval: Long) : SendingScheduler {
         override suspend fun schedule(
             latestResults: List<Pair<Sender, SendingResult>>,
             config: LocoConfig,
@@ -434,6 +438,35 @@ class LocoTest {
 
         override suspend fun delete(logs: List<SmashedLog>) {
             storage.removeAll(logs)
+        }
+    }
+
+    class PrintInternist : Internist {
+        override fun onSend(locoLog: LocoLog, config: LocoConfig) {
+            println("onSend: ${Thread.currentThread().id}")
+        }
+
+        override fun onStoreOffer(log: SmashedLog, config: LocoConfig) {
+            println("onStoreOffer: ${Thread.currentThread().id}")
+        }
+
+        override fun onStore(log: SmashedLog, config: LocoConfig) {
+            println("onStore : ${Thread.currentThread().id}")
+        }
+
+        override fun onStartSending() {
+            println("onStartSending : ${Thread.currentThread().id}")
+        }
+
+        override fun onSending(sender: Sender, logs: List<SmashedLog>, config: LocoConfig) {
+            println("onSending: $sender, ${logs.size}, : ${Thread.currentThread().id}")
+        }
+
+        override fun onEndSending(
+            sendingResults: List<Pair<Sender, SendingResult>>,
+            config: LocoConfig
+        ) {
+            println("onEndSending : ${Thread.currentThread().id}")
         }
     }
 }
