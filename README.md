@@ -107,7 +107,7 @@ There are some useful modules for Android.
 ```groovy
 dependencies {
   // core
-  implementation 'com.sys1yagi.loco:loco-core:1.0.1'
+  implementation 'com.sys1yagi.loco:loco-core:1.1.0'
   
   // use Gson to serialize the log, and you can use filters to process the logs.
   implementation 'com.sys1yagi.loco:loco-smasher-filterable-gson:1.0.0'
@@ -276,15 +276,40 @@ class IntervalSendingScheduler(val interval: Long) : SendingScheduler {
 
 ## LocoConfig.Extra
 
-TODO
+Loco has extra settings for convenient.
 
-## defaultSender
+```kotlin
+data class Extra(
+  val defaultSender: Sender? = null,
+  val sendingBulkSize: Int = 10,
+  val internist: Internist? = null
+)
+```
 
-TODO
+### defaultSender
 
-## sendingBulkSize
+If you want to send all the logs in a single Sender, you can use defaultSender.
 
-TODO
+ ```kotlin
+ Loco.start(
+   LocoConfig(
+     store = //... ,
+     smasher = //... ,
+     senders = mapOf(),
+     scheduler = //... ,
+     extra = LocoConfig.Extra(
+       defaultSender = LocatSender()
+     )
+   )
+ )
+ ```
+
+### sendingBulkSize
+
+You can set the number of logs when sending. The default is 10. This value is passed to Store#load(size: Int).
+
+__NOTE: This value is deprecated in 1.2.0.__
+
 
 ### Internist
 
