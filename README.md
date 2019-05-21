@@ -2,7 +2,7 @@
 # loco
 loco (Log Coroutine) is a logging library using coroutine for Android.
 
-[![CircleCI](https://circleci.com/gh/sys1yagi/loco.svg?style=svg)](https://circleci.com/gh/sys1yagi/loco) ![kotlin](https://img.shields.io/badge/kotlin-1.3.31-blue.svg) ![license](https://img.shields.io/github/license/sys1yagi/loco.svg?maxAge=2592000)
+[![CircleCI](https://circleci.com/gh/sys1yagi/loco.svg?style=svg)](https://circleci.com/gh/sys1yagi/loco) ![kotlin](https://img.shields.io/badge/kotlin-1.3.31-blue.svg) ![coroutine](https://img.shields.io/badge/coroutine-1.2.1-blue.svg) ![license](https://img.shields.io/github/license/sys1yagi/loco.svg?maxAge=2592000)
 
 <img width="1215" alt="archi" src="https://user-images.githubusercontent.com/749051/57979861-0d4a5300-7a5e-11e9-8ce1-4bb5b272ce50.png">
 <div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/"  title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
