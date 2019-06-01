@@ -6,13 +6,10 @@ import com.google.gson.JsonArray
 import com.sys1yagi.loco.core.SendingResult
 import com.sys1yagi.loco.core.internal.SmashedLog
 import io.mockk.coEvery
-import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 
 internal class JsonArraySenderTest {
 
